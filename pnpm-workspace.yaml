@@ -1,0 +1,119 @@
+packages:
+  - apps/*
+  - libs/*
+  - infra/*
+  - tools/*
+  - .claude
+
+catalogMode: prefer
+
+catalog:
+  "@ast-grep/cli": 0.45.3
+  "@cloudflare/workers-types": 5.20261009.1
+  "@effect/platform-node": 4.0.2
+  "@eslint-react/eslint-plugin": 5.28.7
+  "@shadcn/lint": 0.2.0
+  "@tanstack/eslint-plugin-query": 5.104.5
+  "@tanstack/eslint-plugin-router": 1.162.0
+  "@tanstack/eslint-plugin-start": 0.1.0
+  "@typescript-eslint/parser": 8.71.1
+  "@types/node": 26.6.4
+  eslint: 10.12.0
+  eslint-plugin-drizzle: 0.2.3
+  eslint-plugin-react-hooks: 7.1.1
+  oxlint-plugin-eslint: 1.88.0
+  syncpack: 15.3.3
+  vite: npm:@voidzero-dev/vite-plus-core@1.3.0
+  "@r_masseater/oxlint-plugin-decision": 0.0.4
+  "@eslint/config-helpers": 0.7.0
+  eslint-plugin-no-comments: 1.2.1
+  eslint-plugin-baseline-js: 0.7.5
+  "@html-eslint/eslint-plugin-react": 0.66.1
+  "@commitlint/cli": 21.2.4
+  "@commitlint/config-conventional": 21.2.4
+  "@tanstack/react-query-devtools": 5.104.5
+  "@vitejs/plugin-react": 6.1.2
+  "@vitejs/plugin-rsc": 0.5.36
+  skills: 1.7.1
+  "@tanstack/intent": 0.5.5
+  "@yarnpkg/parsers": 3.1.0
+  jose: 6.2.12
+  markdownlint-cli2: 0.23.3
+  chrome-launcher: 1.2.2
+  lighthouse: 13.5.0
+  puppeteer-core: 25.14.0
+catalogs:
+  stack:
+    "@distilled.cloud/cloudflare": 1.0.0-rc.13
+    "@effect/atom-react": 4.0.2
+    "@effect/tsgo": 0.56.0
+    "@elysiajs/eden": 1.4.9
+    "@openfeature/server-sdk": 1.23.0
+    "@tanstack/react-query": 5.104.5
+    "@tanstack/react-start": 1.169.2
+    alchemy: 2.0.0-beta.81
+    better-auth: 1.7.7
+    drizzle-kit: 1.0.0-rc.5-5935859
+    drizzle-orm: 1.0.0-rc.5-5935859
+    eden-tanstack-react-query: 0.5.0
+    effect: 4.0.2
+    elysia: 1.4.30
+    fallow: 3.34.0
+    radix-ui: 1.7.0
+    renovate: 44.148.3
+    steiger: 0.7.0
+    tailwindcss: 4.3.3
+    textlint: 15.8.0
+    typescript: 7.0.2
+    vite-plus: 1.3.0
+overrides:
+  effect: "catalog:stack"
+  "@effect/platform-node-shared": 4.0.2
+  "@effect/sql-d1": 4.0.2
+  "@effect/sql-sqlite-do": 4.0.2
+  "@effect/vitest": 4.0.2
+  vite@*: "catalog:"
+  eslint-plugin-react-hooks>zod-validation-error: ^5.0.0
+  "@hono/node-server@<1.19.15": ^1.19.15
+  hono@<4.13.7: ^4.13.7
+  http-cache-semantics@<=4.2.0: ^4.3.0
+  lodash@<=4.17.23: ^4.18.1
+  seroval@<=1.6.2: ^1.6.3
+  shell-quote@>=1.8.4 <1.11.0: ^1.11.0
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2
+  valibot@<=1.4.1: ^1.4.2
+  katex@>=0.11.0 <0.18.2: ^0.18.2
+  smol-toml@<=1.8.0: ^1.9.0
+  "@modelcontextprotocol/server@>=2.0.0 <2.3.0": ^2.3.0
+  "@vitest/browser@>=5.0.0-beta.6 <5.0.5": ^5.0.5
+  "@vitest/ui@>=5.0.0-beta.6 <5.0.5": ^5.0.5
+  fast-uri@>=3.0.0 <3.1.9: ^3.1.9
+  launch-editor@<=2.14.1: ^2.14.2
+  markdown-it@>=15.0.0 <15.0.3: ^15.0.3
+  undici@>=8.0.0 <8.12.2: ^8.12.2
+  zod@>=4.0.0 <4.6.6: ^4.6.6
+peerDependencyRules:
+  allowAny:
+    - vite
+allowBuilds:
+  "@ast-grep/cli": true
+  esbuild: true
+  workerd: true
+  protobufjs: false
+  core-js-pure: false
+  dtrace-provider: false
+  re2: true
+  "@openrouter/sdk": false
+packageExtensions:
+  "@feature-sliced/steiger-plugin@0.8.0":
+    dependencies:
+      "@steiger/toolkit": 0.2.3
+patchedDependencies:
+  "@tanstack/eslint-plugin-start@0.1.0": patches/@tanstack__eslint-plugin-start@0.1.0.patch
+minimumReleaseAgeExclude:
+  - "@r_masseater/oxlint-plugin-decision@0.0.4"
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
+    - GHSA-hp3w-g68c-fv3c
+    - GHSA-mrhx-c7xc-m3w5

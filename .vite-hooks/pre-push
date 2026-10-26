@@ -1,0 +1,2 @@
+vp run gitleaks
+vp run verify
