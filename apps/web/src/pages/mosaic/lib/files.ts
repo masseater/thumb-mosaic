@@ -5,6 +5,7 @@ import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { BASE_PATH } from "#/shared/config";
 
 const FIRST = 0;
+const BLOCK_FILE = 2;
 const MISSING = "";
 
 interface Visit {
@@ -35,11 +36,41 @@ const variantFile =
   (variant: number, file: string): string =>
     `${variantBase({ ...visit, variant })}/${file}`;
 
-const tileImage = ({ visit, index }: Readonly<{ visit: Visit; index: number }>): string =>
-  variantFile(visit)(variantOf({ visit, index }), `${visit.mosaic.tile.dir}/${index}.jpg`);
+interface TileCrop {
+  readonly url: string;
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+const tileCrop = ({
+  visit,
+  index,
+}: Readonly<{ visit: Visit; index: number }>): Option.Option<TileCrop> =>
+  Option.gen(function* crop() {
+    const { cols, cells, levels } = visit.mosaic;
+    const level = yield* Array.last(levels);
+    const cell = yield* Array.get(cells, index);
+    const column = cell % cols;
+    const line = Math.floor(cell / cols);
+    const blockColumn = Math.floor(column / level.block);
+    const blockRow = Math.floor(line / level.block);
+    const block = yield* Array.findFirst(
+      level.blocks,
+      ([left, top]) => left === blockColumn && top === blockRow,
+    );
+    return {
+      url: variantFile(visit)(variantOf({ visit, index }), block[BLOCK_FILE]),
+      left: (column % level.block) * level.tw,
+      top: (line % level.block) * level.th,
+      width: level.tw,
+      height: level.th,
+    };
+  });
 
 const slugFile = ({ slug, file }: Readonly<{ slug: string; file: string }>): string =>
   `${BASE_PATH}/${slugPath(slug)}/${file}`;
 
-export type { Visit };
-export { slugFile, tileImage, variantFile, variantOf };
+export type { TileCrop, Visit };
+export { slugFile, tileCrop, variantFile, variantOf };

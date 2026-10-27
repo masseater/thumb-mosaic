@@ -6,7 +6,6 @@ import type { Level, Sprites } from "./sprites";
 
 const ONE = 1;
 const ORIGIN = 0;
-const EMPTY = -1;
 const OVERVIEW = 0;
 const HOVER_MIN_TILE_PIXELS = 10;
 const HOVER_WIDTH = 2;
@@ -121,45 +120,6 @@ const sheetItems = (source: Source, sheet: number, request: boolean): readonly I
       ),
   });
 
-const tileAt =
-  (scene: Scene) =>
-  (cell: number): readonly (readonly [number, number])[] => {
-    const tile = scene.tileOfCell[cell] ?? EMPTY;
-    if (tile === EMPTY) {
-      return [];
-    }
-    return [[cell, tile]];
-  };
-
-const indices = (first: number, last: number): readonly number[] =>
-  pipe(
-    Array.range(first, last),
-    Array.filter((index) => index <= last),
-  );
-
-const visibleTiles = (scene: Scene): readonly (readonly [number, number])[] => {
-  const range = visible(scene);
-  return pipe(
-    indices(range.firstRow, range.lastRow),
-    Array.flatMap((row) =>
-      pipe(
-        indices(range.firstCol, range.lastCol),
-        Array.map((col) => row * scene.grid.cols + col),
-      ),
-    ),
-    Array.flatMap(tileAt(scene)),
-  );
-};
-
-const tileItems = ({ scene, sprites }: Source): readonly Item[] =>
-  pipe(
-    visibleTiles(scene),
-    Array.map(([cell, tile]) =>
-      Option.map(sprites.tile(tile), (image): Item => ({ image, span: cellSpan(scene, cell) })),
-    ),
-    Array.getSomes,
-  );
-
 const planImages = (source: Source): readonly Item[] => {
   const { scene, sprites } = source;
   const wanted = sprites.levelFor(CELL_WIDTH * scene.camera.scale * scene.ratio);
@@ -167,9 +127,6 @@ const planImages = (source: Source): readonly Item[] => {
   const sheets = Array.flatMap(Array.range(ORIGIN, sharpest), (sheet) =>
     sheetItems(source, sheet, sheet === sharpest),
   );
-  if (wanted >= sprites.levels.length) {
-    return [...sheets, ...tileItems(source)];
-  }
   return sheets;
 };
 

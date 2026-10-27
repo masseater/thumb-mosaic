@@ -7,6 +7,7 @@ import { mosaicQuery } from "#/pages/mosaic/api/queries";
 import { MosaicLoading } from "./mosaic-loading";
 import { MosaicStatus } from "./mosaic-status";
 import { MosaicView } from "./mosaic-view";
+import { SeedUrl } from "./seed-url";
 
 const FAILED = "モザイクを読み込めませんでした";
 
@@ -18,6 +19,7 @@ const MosaicPage = (): ReactNode => {
   const query = useQuery(mosaicQuery(slug));
   return (
     <main className="bg-background fixed inset-0 overflow-hidden">
+      <SeedUrl seed={seed} />
       {query.status === "pending" && <MosaicLoading />}
       {query.status === "error" && <MosaicStatus message={FAILED} />}
       {query.status === "success" && (
