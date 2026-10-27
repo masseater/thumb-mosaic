@@ -54,7 +54,7 @@ catalogs:
     alchemy: 2.0.0-beta.81
     effect: 4.0.2
     elysia: 1.4.30
-    fallow: 3.34.0
+    fallow: 3.35.0
     radix-ui: 1.7.0
     renovate: 44.148.3
     steiger: 0.7.0
