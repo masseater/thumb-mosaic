@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { mosaicQuery } from "#/pages/mosaic/api/queries";
+import { mosaicQuery } from "#/entities/mosaic";
 
 import { MosaicStatus } from "./mosaic-status";
 import { MosaicView } from "./mosaic-view";

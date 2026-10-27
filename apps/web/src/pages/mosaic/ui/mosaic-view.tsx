@@ -29,7 +29,7 @@ const MosaicView = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>
     <>
       <MosaicCanvas mosaic={mosaic} filesBase={base} />
       {status !== "ready" && <MosaicStatus message={LOADING} />}
-      <MosaicToolbar mosaic={mosaic} />
+      <MosaicToolbar mosaic={mosaic} slug={slug} />
       <MosaicCredit credit={mosaic.credit} />
       {Option.isSome(selected) && (
         <TileCard
