@@ -59,7 +59,7 @@ catalogs:
     fallow: 3.35.0
     radix-ui: 1.8.1
     renovate: 44.181.3
-    steiger: 0.7.0
+    steiger: 0.8.0
     tailwindcss: 4.3.3
     textlint: 15.8.0
     typescript: 7.0.2
