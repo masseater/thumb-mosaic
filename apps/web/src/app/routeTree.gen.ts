@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SlugCreditsRouteImport } from './routes/$slug_.credits'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugCreditsRoute = SlugCreditsRouteImport.update({
+  id: '/$slug_/credits',
+  path: '/$slug/credits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/$slug/credits': typeof SlugCreditsRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/$slug/credits': typeof SlugCreditsRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/$slug_/credits': typeof SlugCreditsRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$slug' | '/robots.txt' | '/api/$'
+  fullPaths: '/' | '/$slug' | '/robots.txt' | '/$slug/credits' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$slug' | '/robots.txt' | '/api/$'
-  id: '__root__' | '/' | '/$slug' | '/robots.txt' | '/api/$'
+  to: '/' | '/$slug' | '/robots.txt' | '/$slug/credits' | '/api/$'
+  id: '__root__' | '/' | '/$slug' | '/robots.txt' | '/$slug_/credits' | '/api/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SlugCreditsRoute: typeof SlugCreditsRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug_/credits': {
+      id: '/$slug_/credits'
+      path: '/$slug/credits'
+      fullPath: '/$slug/credits'
+      preLoaderRoute: typeof SlugCreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
+  SlugCreditsRoute: SlugCreditsRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
