@@ -2,7 +2,7 @@ import { createIsomorphicFn } from "@tanstack/react-start";
 import { PublishedMosaic, manifestPath } from "@thumb-mosaic/mosaic";
 import { Option, Record, Schema } from "effect";
 
-type Mosaic = typeof PublishedMosaic.Type;
+import type { Mosaic } from "./queries";
 
 const PUBLIC = "../../../../public";
 
