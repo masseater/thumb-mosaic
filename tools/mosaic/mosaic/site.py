@@ -14,7 +14,7 @@ from .image import crop_to_tile
 from .net import get
 from .solve import mask_path
 
-LEVELS = (("xs", 24, 0), ("s", 48, 0), ("l", 160, 8))
+LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8))
 TILE = (640, 360)
 QUALITY = 82
 ATLAS_QUALITY = 80
@@ -78,11 +78,6 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
     return {"tw": width, "th": height, "block": side, "blocks": blocks}
 
 
-def _color(path: Path) -> str:
-    r, g, b = Image.open(path).convert("RGB").resize((1, 1), Image.BOX).getpixel((0, 0))
-    return f"{r:02x}{g:02x}{b:02x}"
-
-
 def site(slug: str, data: Path, cache: Path, public: Path) -> None:
     raw = data.read_bytes()
     assignment = json.loads(raw)
@@ -108,7 +103,6 @@ def site(slug: str, data: Path, cache: Path, public: Path) -> None:
         "levels": levels,
         "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"},
         "cells": cells,
-        "colors": "".join(_color(p) for p in paths),
         "mask": "mask.webp",
         "tiles": "tiles.json",
     }

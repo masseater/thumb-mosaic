@@ -5,7 +5,10 @@ import { use, useMemo } from "react";
 
 import type { Scene, Step } from "#/pages/mosaic/lib/scene";
 
-type Viewer = Readonly<{ status: "empty" }> | Readonly<{ status: "ready"; scene: Scene }>;
+type Viewer =
+  | Readonly<{ status: "empty" }>
+  | Readonly<{ status: "loading" }>
+  | Readonly<{ status: "ready"; scene: Scene }>;
 
 interface ViewerStore {
   readonly read: () => Viewer;
@@ -22,6 +25,8 @@ const selectionAtom = Atom.make((get) => {
   }
   return Option.none<number>();
 });
+
+const statusAtom = Atom.make((get): Viewer["status"] => get(viewerAtom).status);
 
 const searchAtom = Atom.make("");
 
@@ -52,9 +57,11 @@ const useViewerStore = (): ViewerStore => {
   );
 };
 
+const useViewerStatus = (): Viewer["status"] => useAtomValue(statusAtom);
+
 const useSearch = (): string => useAtomValue(searchAtom);
 
 const useSetSearch = (): ((query: string) => void) => useAtomSet(searchAtom);
 
 export type { Viewer, ViewerStore };
-export { useSearch, useSelection, useSetSearch, useViewerStore };
+export { useSearch, useSelection, useSetSearch, useViewerStatus, useViewerStore };

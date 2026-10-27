@@ -1,12 +1,10 @@
 import type { PublishedMosaic } from "@thumb-mosaic/mosaic";
-import { Array, Effect, MutableHashMap, Option, Record, String, pipe } from "effect";
+import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
 
 const TILE_CACHE_SIZE = 384;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
 const OVERVIEW = 0;
-const HEX_DIGITS = 6;
-const HEX = "#";
 
 type Mosaic = typeof PublishedMosaic.Type;
 type Level = Mosaic["levels"][number];
@@ -26,7 +24,6 @@ interface Sheets {
 interface Sprites extends Sheets {
   readonly ready: Effect.Effect<void>;
   readonly mask: HTMLImageElement;
-  readonly colors: readonly string[];
   readonly levelFor: (devicePixels: number) => number;
   readonly tile: (index: number) => Option.Option<HTMLImageElement>;
 }
@@ -125,12 +122,6 @@ const levelFinder =
       () => levels.length,
     );
 
-const colorsOf = (hex: string): readonly string[] =>
-  Array.makeBy(
-    Math.floor(hex.length / HEX_DIGITS),
-    (index) => `${HEX}${String.slice(index * HEX_DIGITS, index * HEX_DIGITS + HEX_DIGITS)(hex)}`,
-  );
-
 const createSprites = (source: Source): Sprites => {
   const sheets = pipe(source.mosaic.levels, Array.map(sheetOf(source)));
   const mask = loadImage(source.fileUrl(source.mosaic.mask), source.onLoad);
@@ -147,7 +138,6 @@ const createSprites = (source: Source): Sprites => {
       discard: true,
     }),
     mask,
-    colors: colorsOf(source.mosaic.colors),
     levelFor: levelFinder(source.mosaic.levels),
     tile: tileCache(source),
   };

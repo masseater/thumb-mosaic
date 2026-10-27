@@ -1,8 +1,6 @@
 import { Array, Option } from "effect";
 
 import { CELL_HEIGHT, CELL_WIDTH } from "./camera";
-import { LANDED } from "./intro";
-import { drawIntro } from "./render-intro";
 import type { Scene } from "./scene";
 import type { Level, Sprites } from "./sprites";
 
@@ -12,6 +10,7 @@ const IDENTITY = 1;
 const NO_SKEW = 0;
 const EMPTY = -1;
 const HIDDEN = 0;
+const LANDED = 1;
 const FADE_MS = 600;
 const HOVER_MIN_TILE_PIXELS = 10;
 const HOVER_WIDTH = 2;
@@ -162,9 +161,10 @@ const drawSheet = (frame: Frame, sheet: number, request: boolean): void => {
 const drawImages = (frame: Frame): void => {
   const { scene, sprites, context } = frame;
   const wanted = sprites.levelFor(CELL_WIDTH * scene.camera.scale * scene.ratio);
+  const sharpest = Math.min(wanted, sprites.levels.length - ONE);
   for (const sheet of sprites.levels.keys()) {
-    if (sheet <= wanted) {
-      drawSheet(frame, sheet, sheet === wanted);
+    if (sheet <= sharpest) {
+      drawSheet(frame, sheet, sheet === sharpest);
     }
   }
   if (wanted >= sprites.levels.length) {
@@ -175,15 +175,6 @@ const drawImages = (frame: Frame): void => {
       }
     });
   }
-};
-
-const drawColors = (frame: Frame): void => {
-  const { context, scene, sprites } = frame;
-  forEachCell(frame, (cell, tile) => {
-    const rect = cellRect(scene, cell);
-    context.fillStyle = sprites.colors[tile] ?? HOVER_COLOR;
-    context.fillRect(rect.left, rect.top, rect.width, rect.height);
-  });
 };
 
 const clipToShape = (frame: Frame): void => {
@@ -201,15 +192,9 @@ const revealed = (frame: Frame): number =>
   Math.min(LANDED, Math.max(HIDDEN, (frame.now - frame.scene.reveal) / FADE_MS));
 
 const drawMosaic = (frame: Frame): void => {
-  const amount = revealed(frame);
-  if (amount < LANDED) {
-    drawColors(frame);
-  }
-  if (amount > HIDDEN) {
-    frame.context.globalAlpha = amount;
-    drawImages(frame);
-    frame.context.globalAlpha = LANDED;
-  }
+  frame.context.globalAlpha = revealed(frame);
+  drawImages(frame);
+  frame.context.globalAlpha = LANDED;
   clipToShape(frame);
 };
 
@@ -249,12 +234,7 @@ const drawHighlights = (frame: Frame): void => {
 };
 
 const drawScene = (frame: Frame): void => {
-  const { context, scene } = frame;
-  clear(context);
-  if (scene.motion.status === "intro") {
-    drawIntro({ frame, flights: scene.motion.flights, elapsed: frame.now - scene.motion.start });
-    return;
-  }
+  clear(frame.context);
   drawMosaic(frame);
   drawHighlights(frame);
 };
@@ -262,7 +242,7 @@ const drawScene = (frame: Frame): void => {
 const isFading =
   (now: number) =>
   (scene: Scene): boolean =>
-    Number.isFinite(scene.reveal) && now < scene.reveal + FADE_MS;
+    now < scene.reveal + FADE_MS;
 
 export type { Frame };
 export { drawScene, isFading };

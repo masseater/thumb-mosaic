@@ -4,21 +4,10 @@ import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 
 import type { Point, Size } from "./camera";
 import { leave, pointerDown, pointerMove, pointerUp } from "./gesture";
-import { seedFlights } from "./intro";
 import { advance } from "./motion";
 import { drawScene, isFading } from "./render";
 import type { Scene } from "./scene";
-import {
-  createScene,
-  flyHome,
-  playIntro,
-  resize,
-  select,
-  settle,
-  showImages,
-  zoomAt,
-  zoomInAt,
-} from "./scene";
+import { createScene, flyHome, resize, select, settle, zoomAt, zoomInAt } from "./scene";
 import type { Mosaic, Sprites } from "./sprites";
 import { createSprites } from "./sprites";
 
@@ -68,22 +57,6 @@ const pointOf = (event: MouseEvent): Point => ({
 });
 
 const prefersReducedMotion = (): boolean => globalThis.matchMedia(REDUCED_MOTION).matches;
-
-const replayIntro = (store: ViewerStore): Effect.Effect<void> =>
-  Effect.gen(function* replay() {
-    const viewer = store.read();
-    if (viewer.status !== "ready" || prefersReducedMotion()) {
-      return;
-    }
-    const { scene } = viewer;
-    const flights = yield* seedFlights({
-      cells: scene.cells,
-      view: { viewport: scene.viewport, grid: scene.grid },
-    });
-    store.step(
-      playIntro({ flights, now: performance.now(), imagesReady: Number.isFinite(scene.reveal) }),
-    );
-  });
 
 const bindPointer = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSignal): void => {
   const options = { signal };
@@ -263,15 +236,27 @@ const bindAll = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSig
   bindResize(canvas, store, signal);
 };
 
-const showWhenReady = ({
+const revealWhenReady = ({
+  canvas,
+  mosaic,
   store,
   sprites,
   signal,
-}: Readonly<{ store: ViewerStore; sprites: Sprites; signal: AbortSignal }>): Effect.Effect<void> =>
+}: Readonly<
+  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal }
+>): Effect.Effect<void> =>
   Effect.gen(function* reveal() {
     yield* sprites.ready;
     if (!signal.aborted) {
-      store.step(showImages(performance.now()));
+      store.write({
+        status: "ready",
+        scene: createScene({
+          grid: mosaic,
+          cells: mosaic.cells,
+          reveal: performance.now(),
+          ...measure(canvas),
+        }),
+      });
     }
   });
 
@@ -283,18 +268,14 @@ const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) 
     fileUrl: (file) => `${filesBase}/${file}`,
     onLoad: invalidation.mark,
   });
-  store.write({
-    status: "ready",
-    scene: createScene({ grid: mosaic, cells: mosaic.cells, ...measure(canvas) }),
-  });
+  store.write({ status: "loading" });
   bindAll(canvas, store, controller.signal);
   startLoop({ canvas, store }, { sprites, dirty: invalidation.take }, controller.signal);
-  Effect.runFork(replayIntro(store));
-  Effect.runFork(showWhenReady({ store, sprites, signal: controller.signal }));
+  Effect.runFork(revealWhenReady({ canvas, mosaic, store, sprites, signal: controller.signal }));
 
   return () => {
     controller.abort();
   };
 };
 
-export { mountViewer, replayIntro };
+export { mountViewer };
