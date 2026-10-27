@@ -14,7 +14,8 @@ const route = getRouteApi("/$slug");
 
 const MosaicPage = (): ReactNode => {
   const { slug } = route.useParams();
-  const query = useQuery(mosaicQuery(slug));
+  const { variant } = route.useLoaderData();
+  const query = useQuery(mosaicQuery({ slug, variant }));
   return (
     <main className="bg-background fixed inset-0 overflow-hidden">
       {query.status === "pending" && <MosaicLoading />}

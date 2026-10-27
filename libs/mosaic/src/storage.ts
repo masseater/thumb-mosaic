@@ -1,8 +1,19 @@
 const FILES_DIR = "files";
 
-const manifestPath = (slug: string): string => `${FILES_DIR}/${slug}.json`;
+interface VariantRef {
+  readonly slug: string;
+  readonly variant: number;
+}
 
-const versionPath = ({ slug, version }: Readonly<{ slug: string; version: string }>): string =>
-  `${FILES_DIR}/${slug}/${version}`;
+const manifestPath = ({ slug, variant }: VariantRef): string =>
+  `${FILES_DIR}/${slug}/${variant}.json`;
 
+const versionPath = ({
+  slug,
+  variant,
+  version,
+}: VariantRef & { readonly version: string }): string =>
+  `${FILES_DIR}/${slug}/${variant}/${version}`;
+
+export type { VariantRef };
 export { FILES_DIR, manifestPath, versionPath };

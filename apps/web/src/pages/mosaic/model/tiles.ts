@@ -12,14 +12,13 @@ const route = getRouteApi("/$slug");
 
 const useMosaic = (): Readonly<{ slug: string; mosaic: Mosaic }> => {
   const { slug } = route.useParams();
-  return { slug, mosaic: useSuspenseQuery(mosaicQuery(slug)).data };
+  const { variant } = route.useLoaderData();
+  return { slug, mosaic: useSuspenseQuery(mosaicQuery({ slug, variant })).data };
 };
 
 const useTiles = (): TileList => {
   const { slug, mosaic } = useMosaic();
-  return (
-    useQuery(tilesQuery({ slug, version: mosaic.version, tiles: mosaic.tiles })).data ?? NO_TILES
-  );
+  return useQuery(tilesQuery({ slug, ...mosaic })).data ?? NO_TILES;
 };
 
 const useTile = (index: Option.Option<number>): Option.Option<TileList[number]> => {
@@ -27,8 +26,7 @@ const useTile = (index: Option.Option<number>): Option.Option<TileList[number]> 
   const query = useQuery({
     ...tileChunkQuery({
       slug,
-      version: mosaic.version,
-      chunk: mosaic.chunk,
+      ...mosaic,
       index: Option.getOrElse(index, () => FIRST),
     }),
     enabled: Option.isSome(index),

@@ -9,7 +9,7 @@ import { MosaicLoading } from "./mosaic-loading";
 import { MosaicOverlay } from "./mosaic-overlay";
 
 const MosaicView = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>): ReactNode => {
-  const base = filesBase({ slug, version: mosaic.version });
+  const base = filesBase({ slug, mosaic });
   const ready = useViewerStatus() === "ready";
   return (
     <>

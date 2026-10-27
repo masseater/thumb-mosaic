@@ -15,11 +15,13 @@
 元の絵を 80 列のマスに分け、マスとサムネイルの色の違いの合計がもっとも小さくなるよう、全体を一度に割り当てる。
 色は OKLab の色空間で、各マスを 4×3 の小区画に分けて比べる。
 ほぼ同じサムネイルは、知覚ハッシュで 1 枚にまとめてから割り当てる。
+割り当ては `characters.json` の `variants` の数だけ作り、2 通り目からは前の通りで使ったサムネイルほど選ばれにくくする。
+ページを開くたびに、そのうち 1 通りをランダムに表示する。
 
 ```sh
 cd tools/mosaic
 uv run mosaic pool miku    # VocaDB から曲とサムネイルを集める
-uv run mosaic solve miku   # 割り当てを libs/mosaic/data/miku.json に書く
+uv run mosaic solve miku   # 割り当てを libs/mosaic/data/miku/<通りの番号>.json に書く
 uv run mosaic site         # サムネイルを取り、apps/web/public/files に書き出す
 ```
 

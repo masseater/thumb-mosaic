@@ -17,8 +17,7 @@ RANDOM_EDGES = 24
 RANDOM_PENALTY = 10.0
 CHUNK = 2000
 COVERAGE = 0.05
-MASK_CELL = (16, 9)
-MASK_LEVELS = 16
+REUSE_PENALTY = 1.0
 
 
 def load_target(ch: Character, cache: Path) -> Image.Image:
@@ -31,7 +30,7 @@ def load_target(ch: Character, cache: Path) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
-def target_cells(ch: Character, cache: Path) -> tuple[int, np.ndarray, np.ndarray, np.ndarray, Image.Image]:
+def target_cells(ch: Character, cache: Path) -> tuple[int, np.ndarray, np.ndarray, np.ndarray]:
     src = load_target(ch, cache)
     alpha = src.getchannel("A")
     bg = Image.new("RGBA", src.size, (255, 255, 255, 255))
@@ -46,14 +45,10 @@ def target_cells(ch: Character, cache: Path) -> tuple[int, np.ndarray, np.ndarra
     cells = np.where(cover > COVERAGE)[0]
     blocks = np.asarray(alpha.resize((ch.cols * BLOCKS_X, rows * BLOCKS_Y), Image.BOX), dtype=np.float64) / 255
     weights = blocks.reshape(rows, BLOCKS_Y, ch.cols, BLOCKS_X).transpose(0, 2, 1, 3).reshape(rows * ch.cols, -1)
-    step = 255 / (MASK_LEVELS - 1)
-    shape = alpha.resize((ch.cols * MASK_CELL[0], rows * MASK_CELL[1]), Image.LANCZOS).point(lambda v: round(round(v / step) * step))
-    mask = Image.new("RGBA", shape.size, (0, 0, 0, 0))
-    mask.putalpha(shape)
-    return rows, cells, feats[cells].astype(np.float32), weights[cells].astype(np.float32), mask
+    return rows, cells, feats[cells].astype(np.float32), weights[cells].astype(np.float32)
 
 
-def assign(cells: np.ndarray, weights: np.ndarray, pool: np.ndarray) -> np.ndarray:
+def assign(cells: np.ndarray, weights: np.ndarray, pool: np.ndarray, penalty: np.ndarray) -> np.ndarray:
     n, m = len(cells), len(pool)
     if m < n:
         raise RuntimeError(f"サムネイルが足りない: マス {n} に対して {m} 枚")
@@ -64,7 +59,7 @@ def assign(cells: np.ndarray, weights: np.ndarray, pool: np.ndarray) -> np.ndarr
         c = cells[s : s + CHUNK]
         w = weights[s : s + CHUNK]
         wc = c * np.repeat(w, 3, axis=1)
-        d = (wc * c).sum(1)[:, None] + w @ p2.T - 2 * wc @ pool.T
+        d = (wc * c).sum(1)[:, None] + w @ p2.T - 2 * wc @ pool.T + penalty[None, :]
         k = min(NEAREST, m - 1)
         nn = np.argpartition(d, k, axis=1)[:, :k]
         j = np.concatenate([nn, rng.integers(0, m, size=(len(c), RANDOM_EDGES))], 1)
@@ -85,16 +80,30 @@ def assign(cells: np.ndarray, weights: np.ndarray, pool: np.ndarray) -> np.ndarr
 SERVICE_LABEL = {"Youtube": "YouTube", "NicoNicoDouga": "ニコニコ"}
 
 
-def mask_path(data: Path) -> Path:
-    return data.with_suffix(".mask.webp")
+def variant_path(data: Path, variant: int) -> Path:
+    return data / f"{variant}.json"
 
 
 def solve(ch: Character, cache: Path, data: Path) -> None:
     pool = np.load(cache / "features.npy")
     entries = json.loads((cache / "pool.json").read_text())
-    rows, cells, cfeats, weights, mask = target_cells(ch, cache)
-    started = time.time()
-    chosen = assign(cfeats, weights, pool)
+    rows, cells, cfeats, weights = target_cells(ch, cache)
+    uses = np.zeros(len(pool))
+    reuse = 0.0
+    data.mkdir(parents=True, exist_ok=True)
+    for variant in range(ch.variants):
+        started = time.time()
+        chosen = assign(cfeats, weights, pool, reuse * uses)
+        uses[chosen] += 1
+        if variant == 0:
+            reuse = REUSE_PENALTY * float(np.median(((cfeats - pool[chosen]) ** 2 * np.repeat(weights, 3, axis=1)).sum(1)))
+        _write(ch, entries, (rows, cells, cfeats, weights), (pool, chosen), variant_path(data, variant))
+        print(f"solve variant={variant} seconds={time.time() - started:.1f}", file=sys.stderr)
+
+
+def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path: Path) -> None:
+    rows, cells, cfeats, weights = target
+    pool, chosen = picks
     per_block = np.sqrt(((cfeats - pool[chosen]) ** 2).reshape(len(cells), BLOCKS_X * BLOCKS_Y, 3).sum(2))
     delta = (per_block * weights).sum() / weights.sum()
     picked = sorted(zip(cells.tolist(), chosen.tolist()))
@@ -109,7 +118,5 @@ def solve(ch: Character, cache: Path, data: Path) -> None:
         "tiles": [[c, e["name"], e["artist"], e["url"], SERVICE_LABEL[e["service"]]] for (c, _), e in zip(picked, tiles)],
         "fallbacks": [e["thumbs"][0] if e["service"] == "NicoNicoDouga" else "" for e in tiles],
     }
-    data.parent.mkdir(parents=True, exist_ok=True)
-    mask.save(mask_path(data), lossless=True, method=6)
-    data.write_text(json.dumps(assignment, ensure_ascii=False, separators=(",", ":")) + "\n")
-    print(f"solve cells={len(cells)} pool={len(pool)} meanDelta={delta:.4f} seconds={time.time() - started:.1f}", file=sys.stderr)
+    path.write_text(json.dumps(assignment, ensure_ascii=False, separators=(",", ":")) + "\n")
+    print(f"solve {path.name} cells={len(cells)} pool={len(pool)} meanDelta={delta:.4f}", file=sys.stderr)

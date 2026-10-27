@@ -1,5 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { Array, Option, pipe } from "effect";
+import { CHARACTERS } from "@thumb-mosaic/mosaic";
+import type { VariantRef } from "@thumb-mosaic/mosaic";
+import { Array, Effect, Option, Random, pipe } from "effect";
 
 import { bundledMosaic } from "#/pages/mosaic/api/bundled";
 import { mosaicQuery } from "#/pages/mosaic/api/queries";
@@ -8,6 +10,8 @@ import { filesBase } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
 
 const OVERVIEW = 0;
+const SINGLE = 1;
+const FIRST = 0;
 const BLOCK_FILE = 2;
 
 interface Card {
@@ -18,6 +22,7 @@ interface Card {
 }
 
 interface Preload {
+  readonly variant: number;
   readonly images: readonly string[];
   readonly card: Option.Option<Card>;
 }
@@ -43,7 +48,7 @@ const overviewImages = ({
   mosaic,
   slug,
 }: Readonly<{ mosaic: Mosaic; slug: string }>): readonly string[] => {
-  const base = filesBase({ slug, version: mosaic.version });
+  const base = filesBase({ slug, mosaic });
   return pipe(
     Array.get(mosaic.levels, OVERVIEW),
     Option.map((level) =>
@@ -59,24 +64,41 @@ const overviewImages = ({
 const cardOf = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>): Card => ({
   title: `${slug}.mosaic`,
   description: `動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
-  image: `${SITE_ORIGIN}${filesBase({ slug, version: mosaic.version })}/${mosaic.og}`,
+  image: `${SITE_ORIGIN}${filesBase({ slug, mosaic })}/${mosaic.og}`,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,
 });
+
+const variantsOf = (slug: string): number =>
+  pipe(
+    Array.findFirst(CHARACTERS, (character) => character.slug === slug),
+    Option.match({ onNone: () => SINGLE, onSome: (character) => character.variants }),
+  );
+
+const preloadOf = ({
+  queryClient,
+  ref,
+}: Readonly<{ queryClient: QueryClient; ref: VariantRef }>): Preload =>
+  Option.match(bundledMosaic(ref), {
+    onNone: (): Preload => ({ variant: ref.variant, images: [], card: Option.none() }),
+    onSome: (mosaic) => {
+      queryClient.setQueryData(mosaicQuery(ref).queryKey, mosaic);
+      return {
+        variant: ref.variant,
+        images: overviewImages({ mosaic, slug: ref.slug }),
+        card: Option.some(cardOf({ mosaic, slug: ref.slug })),
+      };
+    },
+  });
 
 const loadMosaic = ({
   queryClient,
   slug,
-}: Readonly<{ queryClient: QueryClient; slug: string }>): Preload =>
-  Option.match(bundledMosaic(slug), {
-    onNone: (): Preload => ({ images: [], card: Option.none() }),
-    onSome: (mosaic) => {
-      queryClient.setQueryData(mosaicQuery(slug).queryKey, mosaic);
-      return {
-        images: overviewImages({ mosaic, slug }),
-        card: Option.some(cardOf({ mosaic, slug })),
-      };
-    },
-  });
+}: Readonly<{ queryClient: QueryClient; slug: string }>): Promise<Preload> => {
+  const pick = Random.nextIntBetween(FIRST, variantsOf(slug), { halfOpen: true });
+  return Effect.runPromise(
+    pick.pipe(Effect.map((variant) => preloadOf({ queryClient, ref: { slug, variant } }))),
+  );
+};
 
 const preloadLink = (href: string): PreloadLink => ({
   rel: "preload",

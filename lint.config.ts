@@ -191,6 +191,7 @@ const generated = [
   ".intent/**",
   "AGENTS.md",
   "skills-lock.json",
+  "libs/mosaic/data/**",
   "CHANGELOG.md",
 ];
 

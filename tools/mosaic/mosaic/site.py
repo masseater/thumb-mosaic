@@ -14,6 +14,7 @@ from PIL import Image
 from .image import crop_to_tile
 from .net import get
 from .characters import Character
+from .solve import variant_path
 
 LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8))
 TILE = (640, 360)
@@ -98,17 +99,21 @@ def _og(tiles: list[tuple[int, Path]], cols: int, crop: tuple[int, int, int], ou
 
 
 def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
-    slug = ch.slug
+    cache.mkdir(parents=True, exist_ok=True)
+    if (public / ch.slug).exists():
+        shutil.rmtree(public / ch.slug)
+    for variant in range(ch.variants):
+        _variant(ch, variant_path(data, variant), cache, public / ch.slug / str(variant))
+
+
+def _variant(ch: Character, data: Path, cache: Path, public: Path) -> None:
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
-    cache.mkdir(parents=True, exist_ok=True)
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
         paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache), zip(tiles, assignment["fallbacks"])))
-    if (public / slug).exists():
-        shutil.rmtree(public / slug)
-    out = public / slug / version
+    out = public / version
     (out / "t").mkdir(parents=True)
     for i, path in enumerate(paths):
         shutil.copyfile(path, out / "t" / f"{i}.jpg")
@@ -123,6 +128,7 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
         (out / CHUNK_DIR / f"{start // CHUNK}.json").write_text(chunk)
     manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles")}
     manifest |= {
+        "variant": int(public.name),
         "version": version,
         "levels": levels,
         "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"},
@@ -131,9 +137,9 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
         "tiles": "tiles.json",
         "chunk": {"size": CHUNK, "dir": CHUNK_DIR},
     }
-    (public / f"{slug}.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
+    public.with_suffix(".json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
     widths: dict[int, int] = {}
     for path in paths:
         w = Image.open(path).size[0]
         widths[w] = widths.get(w, 0) + 1
-    print(f"site {slug} version={version} tiles={len(paths)} widths={dict(sorted(widths.items()))}", file=sys.stderr)
+    print(f"site {ch.slug}/{public.name} version={version} tiles={len(paths)} widths={dict(sorted(widths.items()))}", file=sys.stderr)

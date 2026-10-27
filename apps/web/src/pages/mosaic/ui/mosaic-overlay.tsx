@@ -20,7 +20,7 @@ const MosaicOverlay = ({
   return (
     <>
       {arrived && <MosaicToolbar />}
-      {arrived && <MosaicCredit slug={slug} />}
+      {arrived && <MosaicCredit slug={slug} variant={mosaic.variant} />}
       {Option.isSome(selected) && (
         <TileCard
           tile={selected.value.tile}

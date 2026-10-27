@@ -1,4 +1,5 @@
 import { PublishedMosaic, Tiles, manifestPath, versionPath } from "@thumb-mosaic/mosaic";
+import type { VariantRef } from "@thumb-mosaic/mosaic";
 import { Effect, ManagedRuntime } from "effect";
 import type { Schema } from "effect";
 import { FetchHttpClient, HttpClient, HttpClientResponse } from "effect/http";
@@ -18,11 +19,11 @@ interface Query<Value> {
 
 const runtime = ManagedRuntime.make(FetchHttpClient.layer);
 
-const fetchMosaic = (slug: string): Effect.Effect<Mosaic, FetchError, HttpClient.HttpClient> =>
-  HttpClient.get(`${BASE_PATH}/${manifestPath(slug)}`).pipe(
+const fetchMosaic = (ref: VariantRef): Effect.Effect<Mosaic, FetchError, HttpClient.HttpClient> =>
+  HttpClient.get(`${BASE_PATH}/${manifestPath(ref)}`).pipe(
     Effect.flatMap(HttpClientResponse.filterStatusOk),
     Effect.flatMap(HttpClientResponse.schemaBodyJson(PublishedMosaic)),
-    Effect.withSpan("mosaic.manifest", { attributes: { slug } }),
+    Effect.withSpan("mosaic.manifest", { attributes: { ...ref } }),
   );
 
 const fetchTiles = (path: string): Effect.Effect<TileList, FetchError, HttpClient.HttpClient> =>
@@ -32,18 +33,19 @@ const fetchTiles = (path: string): Effect.Effect<TileList, FetchError, HttpClien
     Effect.withSpan("mosaic.tiles", { attributes: { path } }),
   );
 
-const mosaicQuery = (slug: string): Query<Mosaic> => ({
-  queryKey: ["mosaic", slug],
-  queryFn: ({ signal }) => runtime.runPromise(fetchMosaic(slug), { signal }),
+const mosaicQuery = ({ slug, variant }: VariantRef): Query<Mosaic> => ({
+  queryKey: ["mosaic", slug, String(variant)],
+  queryFn: ({ signal }) => runtime.runPromise(fetchMosaic({ slug, variant }), { signal }),
   staleTime: Number.POSITIVE_INFINITY,
 });
 
 const tilesQuery = ({
   slug,
+  variant,
   version,
   tiles,
-}: Readonly<Pick<Mosaic, "version" | "tiles"> & { slug: string }>): Query<TileList> => {
-  const path = `${versionPath({ slug, version })}/${tiles}`;
+}: Readonly<Pick<Mosaic, "variant" | "version" | "tiles"> & { slug: string }>): Query<TileList> => {
+  const path = `${versionPath({ slug, variant, version })}/${tiles}`;
   return {
     queryKey: ["tiles", path],
     queryFn: ({ signal }) => runtime.runPromise(fetchTiles(path), { signal }),
@@ -53,13 +55,14 @@ const tilesQuery = ({
 
 const tileChunkQuery = ({
   slug,
+  variant,
   version,
   chunk,
   index,
 }: Readonly<
-  Pick<Mosaic, "version" | "chunk"> & { slug: string; index: number }
+  Pick<Mosaic, "variant" | "version" | "chunk"> & { slug: string; index: number }
 >): Query<TileList> => {
-  const path = `${versionPath({ slug, version })}/${chunk.dir}/${Math.floor(index / chunk.size)}.json`;
+  const path = `${versionPath({ slug, variant, version })}/${chunk.dir}/${Math.floor(index / chunk.size)}.json`;
   return {
     queryKey: ["tiles", path],
     queryFn: ({ signal }) => runtime.runPromise(fetchTiles(path), { signal }),
