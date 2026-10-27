@@ -2,14 +2,13 @@ import type { ChangeEventHandler, ReactNode } from "react";
 import { useCallback } from "react";
 
 import { hasQuery } from "#/pages/mosaic/lib/search";
-import type { Mosaic } from "#/pages/mosaic/lib/sprites";
 import { useSearch, useSetSearch } from "#/pages/mosaic/model/viewer";
 
 import { SearchResults } from "./search-results";
 
 const PLACEHOLDER = "曲名やボカロPで探す";
 
-const TileSearch = ({ mosaic }: Readonly<{ mosaic: Mosaic }>): ReactNode => {
+const TileSearch = (): ReactNode => {
   const query = useSearch();
   const setQuery = useSetSearch();
   const change = useCallback<ChangeEventHandler<HTMLInputElement>>(
@@ -28,7 +27,7 @@ const TileSearch = ({ mosaic }: Readonly<{ mosaic: Mosaic }>): ReactNode => {
         aria-label={PLACEHOLDER}
         className="bg-background/90 h-9 w-full rounded-md border px-3 text-sm backdrop-blur"
       />
-      {hasQuery(query) && <SearchResults mosaic={mosaic} query={query} />}
+      {hasQuery(query) && <SearchResults query={query} />}
     </div>
   );
 };

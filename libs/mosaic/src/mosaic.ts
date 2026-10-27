@@ -9,18 +9,22 @@ const Level = Schema.Struct({
 
 const Tile = Schema.Tuple([Schema.Int, Schema.String, Schema.String, Schema.String, Schema.String]);
 
-const Mosaic = Schema.Struct({
+const Tiles = Schema.Array(Tile);
+
+const PublishedMosaic = Schema.Struct({
   character: Schema.String,
   credit: Schema.String,
   cols: Schema.Int,
   rows: Schema.Int,
   pool: Schema.Int,
   meanDelta: Schema.Finite,
+  version: Schema.String,
   levels: Schema.Array(Level),
   tile: Schema.Struct({ width: Schema.Int, height: Schema.Int, dir: Schema.String }),
-  tiles: Schema.Array(Tile),
+  cells: Schema.Array(Schema.Int),
+  colors: Schema.String,
+  mask: Schema.String,
+  tiles: Schema.String,
 });
 
-const PublishedMosaic = Schema.Struct({ ...Mosaic.fields, version: Schema.String });
-
-export { Mosaic, PublishedMosaic, Tile };
+export { PublishedMosaic, Tile, Tiles };

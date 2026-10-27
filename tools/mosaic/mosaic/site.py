@@ -12,6 +12,7 @@ from PIL import Image
 
 from .image import crop_to_tile
 from .net import get
+from .solve import mask_path
 
 LEVELS = (("xs", 24, 0), ("s", 48, 0), ("l", 160, 8))
 TILE = (640, 360)
@@ -67,7 +68,7 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
     for (bx, by), members in sorted(groups.items()):
         w = min(side, cols - bx * side) * width
         h = min(side, rows - by * side) * height
-        sheet = Image.new("RGB", (w, h), (255, 255, 255))
+        sheet = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         for cell, path in members:
             im = Image.open(path).convert("RGB").resize((width, height), Image.LANCZOS)
             sheet.paste(im, (((cell % cols) % side) * width, ((cell // cols) % side) * height))
@@ -77,10 +78,15 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
     return {"tw": width, "th": height, "block": side, "blocks": blocks}
 
 
+def _color(path: Path) -> str:
+    r, g, b = Image.open(path).convert("RGB").resize((1, 1), Image.BOX).getpixel((0, 0))
+    return f"{r:02x}{g:02x}{b:02x}"
+
+
 def site(slug: str, data: Path, cache: Path, public: Path) -> None:
     raw = data.read_bytes()
     assignment = json.loads(raw)
-    version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY)).encode()).hexdigest()[:16]
+    version = hashlib.sha256(raw + mask_path(data).read_bytes() + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY)).encode()).hexdigest()[:16]
     cache.mkdir(parents=True, exist_ok=True)
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
@@ -94,8 +100,18 @@ def site(slug: str, data: Path, cache: Path, public: Path) -> None:
     cells = [t[0] for t in tiles]
     grid = (assignment["cols"], assignment["rows"])
     levels = [_level(list(zip(cells, paths)), grid, out, *spec) for spec in LEVELS]
-    manifest = {k: v for k, v in assignment.items() if k != "fallbacks"}
-    manifest |= {"version": version, "levels": levels, "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"}}
+    shutil.copyfile(mask_path(data), out / "mask.webp")
+    (out / "tiles.json").write_text(json.dumps(tiles, ensure_ascii=False, separators=(",", ":")))
+    manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles")}
+    manifest |= {
+        "version": version,
+        "levels": levels,
+        "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"},
+        "cells": cells,
+        "colors": "".join(_color(p) for p in paths),
+        "mask": "mask.webp",
+        "tiles": "tiles.json",
+    }
     (public / f"{slug}.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
     widths: dict[int, int] = {}
     for path in paths:

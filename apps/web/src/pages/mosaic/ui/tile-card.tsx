@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { TileList } from "#/entities/mosaic";
 import type { Mosaic } from "#/pages/mosaic/lib/sprites";
 
 import { TileActions } from "./tile-actions";
@@ -10,7 +11,7 @@ const TileCard = ({
   image,
   size,
 }: Readonly<{
-  tile: Mosaic["tiles"][number];
+  tile: TileList[number];
   image: string;
   size: Mosaic["tile"];
 }>): ReactNode => {

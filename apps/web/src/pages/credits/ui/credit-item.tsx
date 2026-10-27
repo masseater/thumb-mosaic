@@ -12,7 +12,10 @@ const CreditItem = ({ name, artist, url, service }: CreditItemProps): ReactNode 
     <a href={url} target="_blank" rel="noreferrer" className="font-medium hover:underline">
       {name}
     </a>
-    <span className="text-muted-foreground">{`${artist}・${service}`}</span>
+    <span className="text-muted-foreground flex gap-3">
+      <span>{artist}</span>
+      <span>{service}</span>
+    </span>
   </li>
 );
 
