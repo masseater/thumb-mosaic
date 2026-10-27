@@ -4,6 +4,7 @@ import { Array, Effect, MutableHashMap, Option, pipe } from "effect";
 const TILE_CACHE_SIZE = 384;
 const ORIGIN = 0;
 const NO_WIDTH = 0;
+const FIRST_LEVEL = 0;
 
 type Mosaic = typeof PublishedMosaic.Type;
 type Level = Mosaic["levels"][number];
@@ -79,16 +80,28 @@ const atlasSlot = ({
   };
 };
 
-const atlasesOf = ({ mosaic, fileUrl, onLoad }: Source): readonly (readonly HTMLImageElement[])[] =>
+const atlasesOf = ({ mosaic, onLoad }: Source): readonly (readonly HTMLImageElement[])[] =>
   pipe(
     mosaic.levels,
     Array.map((level) =>
       pipe(
         level.files,
-        Array.map((file) => loadImage(fileUrl(file), onLoad)),
+        Array.map(() => {
+          const image = new Image();
+          image.decoding = "async";
+          image.addEventListener("load", onLoad);
+          return image;
+        }),
       ),
     ),
   );
+
+const requested = (image: HTMLImageElement, url: string): HTMLImageElement => {
+  if (image.getAttribute("src") === null) {
+    image.src = url;
+  }
+  return image;
+};
 
 const tileCache = ({ mosaic, fileUrl, onLoad }: Source): Sprites["tile"] => {
   const cache = MutableHashMap.empty<number, HTMLImageElement>();
@@ -114,22 +127,27 @@ const createSprites = (source: Source): Sprites => {
   const atlases = atlasesOf(source);
   const levelAt = (levelIndex: number): Option.Option<Level> =>
     Array.get(source.mosaic.levels, levelIndex);
+  const sheet = (levelIndex: number, slot: number): Option.Option<HTMLImageElement> =>
+    Option.gen(function* sheetOf() {
+      const level = yield* levelAt(levelIndex);
+      const file = yield* Array.get(level.files, slot);
+      const image = yield* Array.get(yield* Array.get(atlases, levelIndex), slot);
+      return requested(image, source.fileUrl(file));
+    });
+  const first = pipe(
+    levelAt(FIRST_LEVEL),
+    Option.match({ onNone: (): readonly string[] => [], onSome: (level) => level.files }),
+    Array.map((_file, slot) => sheet(FIRST_LEVEL, slot)),
+    Array.getSomes,
+  );
   return {
-    ready: pipe(
-      Array.head(atlases),
-      Option.getOrElse(() => []),
-      Array.map(whenSettled),
-      (settling) => Effect.all(settling, { discard: true }),
-    ),
+    ready: Effect.forEach(first, whenSettled, { concurrency: "unbounded", discard: true }),
     atlas: (levelIndex, index) =>
       Option.gen(function* atlasSprite() {
         const level = yield* levelAt(levelIndex);
-        const sheet = yield* Array.get(atlases, levelIndex);
-        const image = yield* pipe(
-          Array.get(sheet, Math.floor(index / level.perAtlas)),
-          Option.filter(isLoaded),
-        );
-        return atlasSlot({ level, image, index });
+        const image = yield* sheet(levelIndex, Math.floor(index / level.perAtlas));
+        const loaded = yield* Option.filter(Option.some(image), isLoaded);
+        return atlasSlot({ level, image: loaded, index });
       }),
     tile: tileCache(source),
     atlasWidth: (levelIndex) =>
