@@ -1,11 +1,9 @@
-import { CredentialsFromEnv } from "@distilled.cloud/cloudflare/Credentials";
-import { listObjects, putObject } from "@distilled.cloud/cloudflare/r2";
+import { listObjectsV2, putObject } from "@distilled.cloud/aws/s3";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
 import { FILES_DIR, ORIGINAL_TYPE, ORIGINALS_BUCKET } from "@thumb-mosaic/mosaic";
 import type { Context } from "effect";
 import {
   Array,
-  Config,
   Console,
   Effect,
   FileSystem,
@@ -20,8 +18,9 @@ import { Argument, Command } from "effect/cli";
 import { FetchHttpClient } from "effect/http";
 import { OtlpSerialization, OtlpTracer } from "effect/observability";
 
-const UPLOAD_CONCURRENCY = 32;
-const PAGE_SIZE = 1000;
+import { r2 } from "./r2.ts";
+
+const UPLOAD_CONCURRENCY = 64;
 const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";
 const IMAGE_EXTENSION = ".jpg";
 
@@ -29,12 +28,7 @@ const tracing = OtlpTracer.layerFromConfig({
   resource: { serviceName: "mosaic-upload" },
 }).pipe(Layer.provide(OtlpSerialization.layerJson), Layer.provide(FetchHttpClient.layer));
 
-const services = Layer.mergeAll(
-  tracing,
-  NodeServices.layer,
-  CredentialsFromEnv,
-  FetchHttpClient.layer,
-);
+const services = Layer.mergeAll(tracing, NodeServices.layer, FetchHttpClient.layer, r2);
 
 const command = Command.make(
   "mosaic-upload",
@@ -43,18 +37,16 @@ const command = Command.make(
     Effect.gen(function* upload() {
       const fileSystem = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
-      const bucket = {
-        accountId: yield* Config.String("CLOUDFLARE_ACCOUNT_ID"),
-        bucketName: ORIGINALS_BUCKET,
-      };
       const files = pipe(
         yield* fileSystem.readDirectory(directory, { recursive: true }),
         Array.filter(String.endsWith(IMAGE_EXTENSION)),
       );
       const existing = yield* pipe(
-        listObjects.items({ ...bucket, prefix: `${FILES_DIR}/`, perPage: PAGE_SIZE }),
-        Stream.runFold(HashSet.empty<string>, (keys, object) =>
-          HashSet.add(keys, object.key ?? ""),
+        listObjectsV2.pages({ Bucket: ORIGINALS_BUCKET, Prefix: `${FILES_DIR}/` }),
+        Stream.flatMap((page) => Stream.fromIterable(page.Contents ?? [])),
+        Stream.runFold(
+          () => HashSet.empty<string>(),
+          (keys, object) => HashSet.add(keys, object.Key ?? ""),
         ),
         Effect.withSpan("mosaic.upload.list"),
       );
@@ -68,11 +60,11 @@ const command = Command.make(
           Effect.gen(function* uploadFile() {
             const body = yield* fileSystem.readFile(path.join(directory, file));
             yield* putObject({
-              ...bucket,
-              objectName: `${FILES_DIR}/${file}`,
-              body,
-              contentType: ORIGINAL_TYPE,
-              cacheControl: IMMUTABLE_CACHE,
+              Bucket: ORIGINALS_BUCKET,
+              Key: `${FILES_DIR}/${file}`,
+              Body: body,
+              ContentType: ORIGINAL_TYPE,
+              CacheControl: IMMUTABLE_CACHE,
             });
           }).pipe(Effect.withSpan("mosaic.upload.file", { attributes: { file } })),
         { concurrency: UPLOAD_CONCURRENCY, discard: true },

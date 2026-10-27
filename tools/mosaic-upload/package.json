@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@distilled.cloud/aws": "catalog:stack",
     "@distilled.cloud/cloudflare": "catalog:stack",
     "@effect/platform-node": "catalog:",
     "@thumb-mosaic/mosaic": "workspace:*",
