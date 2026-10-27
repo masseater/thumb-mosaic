@@ -3,13 +3,14 @@ import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
 import type { Mosaic } from "#/pages/mosaic/api/queries";
 
 import { composeBlock } from "./compose";
-import { tileImage } from "./files";
+import { tileImage, variantFile } from "./files";
 import type { Visit } from "./files";
 
 const TILE_CACHE_SIZE = 384;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
 const OVERVIEW = 0;
+const BEST_VARIANT = 0;
 
 type Level = Mosaic["levels"][number];
 
@@ -81,7 +82,11 @@ const whenLoaded = (image: HTMLImageElement): Effect.Effect<unknown> =>
 
 const blockKey = (column: number, row: number): string => `${column}_${row}`;
 
-const blockOf = ({ visit, onLoad }: Source, level: Level, at: Level["blocks"][number]): Block => {
+const blockOf = (
+  { visit, onLoad }: Source,
+  { level, index }: Readonly<{ level: Level; index: number }>,
+  at: Level["blocks"][number],
+): Block => {
   const image = pendingImage(onLoad);
   const [column, row, file] = at;
   let started = false;
@@ -90,10 +95,23 @@ const blockOf = ({ visit, onLoad }: Source, level: Level, at: Level["blocks"][nu
     start: () => {
       if (!started) {
         started = true;
+        const first = index === OVERVIEW;
+        if (first) {
+          image.src = variantFile(visit)(BEST_VARIANT, file);
+        }
+        const composed = composeBlock({ visit, level, column, row, file });
+        const show = (url: string): void => {
+          image.src = url;
+        };
         Effect.runFork(
-          Effect.map(composeBlock({ visit, level, column, row, file }), (url) => {
-            image.src = url;
-          }),
+          Effect.when(whenLoaded(image), Effect.succeed(first)).pipe(
+            Effect.andThen(composed),
+            Effect.tap((url) =>
+              Effect.sync(() => {
+                show(url);
+              }),
+            ),
+          ),
         );
       }
     },
@@ -102,12 +120,12 @@ const blockOf = ({ visit, onLoad }: Source, level: Level, at: Level["blocks"][nu
 
 const sheetOf =
   (source: Source) =>
-  (level: Level): Record.ReadonlyRecord<string, Block> =>
+  (level: Level, index: number): Record.ReadonlyRecord<string, Block> =>
     pipe(
       level.blocks,
       Array.map((at): readonly [string, Block] => {
         const [column, row] = at;
-        return [blockKey(column, row), blockOf(source, level, at)];
+        return [blockKey(column, row), blockOf(source, { level, index }, at)];
       }),
       Record.fromEntries,
     );

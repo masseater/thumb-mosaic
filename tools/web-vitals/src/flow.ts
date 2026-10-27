@@ -31,13 +31,14 @@ const openBrowser = (chromeFlags: readonly string[]): Effect.Effect<Browser, Bro
     return yield* attempt(() => launch({ executablePath, args: [...chromeFlags] }));
   });
 
+const LINK_TIMEOUT = 30_000;
+
 const missingLink = (target: string): BrowserError =>
   BrowserError.make({ cause: `${target} へのリンクが見つからない` });
 
-const withoutHash = (url: string): string => {
+const pageOf = (url: string): string => {
   const parsed = new URL(url);
-  parsed.hash = "";
-  return parsed.href;
+  return `${parsed.origin}${parsed.pathname}`;
 };
 
 const hrefsOn = (page: Page): Effect.Effect<readonly string[], BrowserError> =>
@@ -57,21 +58,35 @@ const linksOn = (page: Page): Effect.Effect<readonly string[], BrowserError> =>
   Effect.map(hrefsOn(page), (hrefs) =>
     pipe(
       hrefs,
-      Array.map((href) => withoutHash(href)),
+      Array.map((href) => pageOf(href)),
       Array.dedupe,
-      Array.filter((href) => href !== withoutHash(page.url())),
+      Array.filter((href) => href !== pageOf(page.url())),
     ),
   );
 
 const clickLink = (page: Page, target: string): Effect.Effect<void, BrowserError> =>
   Effect.gen(function* click() {
+    yield* attempt(() =>
+      page.waitForFunction(
+        (href) => {
+          for (const anchor of document.querySelectorAll("a")) {
+            if (`${anchor.origin}${anchor.pathname}` === href) {
+              return true;
+            }
+          }
+          return false;
+        },
+        { timeout: LINK_TIMEOUT },
+        target,
+      ),
+    ).pipe(Effect.mapError(() => missingLink(target)));
     const anchors = yield* attempt(() => page.$$("a[href]"));
     const reads = pipe(
       anchors,
       Array.map((anchor) => anchor.evaluate((element) => element.href)),
     );
     const hrefs = yield* attempt(() => Promise.all(reads));
-    const index = yield* Array.findFirstIndex(hrefs, (href) => withoutHash(href) === target).pipe(
+    const index = yield* Array.findFirstIndex(hrefs, (href) => pageOf(href) === target).pipe(
       Effect.fromOption,
       Effect.mapError(() => missingLink(target)),
     );
@@ -82,11 +97,8 @@ const clickLink = (page: Page, target: string): Effect.Effect<void, BrowserError
     yield* attempt(() =>
       Promise.all([
         page.waitForFunction(
-          (href) => {
-            const here = new URL(location.href);
-            here.hash = "";
-            return here.href === href && document.readyState === "complete";
-          },
+          (href) =>
+            `${location.origin}${location.pathname}` === href && document.readyState === "complete",
           {},
           target,
         ),

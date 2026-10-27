@@ -9,8 +9,7 @@ import { loadVisit } from "./visit";
 import type { Assignment, Loaded } from "./visit";
 
 const OVERVIEW = 0;
-const FIRST = 0;
-const NEXT = 1;
+const BEST_VARIANT = 0;
 const BLOCK_FILE = 2;
 
 interface Card {
@@ -47,8 +46,8 @@ const overviewImages = (visit: Omit<Visit, "seed" | "choice">): readonly string[
     Array.get(visit.mosaic.levels, OVERVIEW),
     Option.map((level) =>
       pipe(
-        Array.cartesian(Array.range(FIRST, visit.mosaic.variants.length - NEXT), level.blocks),
-        Array.map(([variant, block]) => variantFile(visit)(variant, block[BLOCK_FILE])),
+        level.blocks,
+        Array.map((block) => variantFile(visit)(BEST_VARIANT, block[BLOCK_FILE])),
       ),
     ),
     Option.getOrElse((): readonly string[] => []),
