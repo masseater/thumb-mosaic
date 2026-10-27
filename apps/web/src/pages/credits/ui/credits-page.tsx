@@ -3,6 +3,8 @@ import { CHARACTERS } from "@thumb-mosaic/mosaic";
 import { Array, Option, pipe } from "effect";
 import type { ReactNode } from "react";
 
+import { CreditsList } from "./credits-list";
+
 const route = getRouteApi("/$slug_/credits");
 
 const HEADING = "クレジット";
@@ -23,6 +25,7 @@ const creditOf = (slug: string): readonly string[] =>
 
 const CreditsPage = (): ReactNode => {
   const { slug } = route.useParams();
+  const tiles = route.useLoaderData();
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-6 text-sm sm:p-8">
       <h1 className="text-2xl font-bold">{HEADING}</h1>
@@ -32,6 +35,7 @@ const CreditsPage = (): ReactNode => {
           Array.map((line) => <li key={line}>{line}</li>),
         )}
       </ul>
+      <CreditsList tiles={tiles} />
     </main>
   );
 };
