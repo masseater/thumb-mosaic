@@ -75,9 +75,8 @@ const partsOf = (gpu: Gpu, target: Readonly<Target & { accent: string }>): Parts
 const overviewImage = (sprites: Sprites): Option.Option<HTMLImageElement> =>
   sprites.block({ sheet: OVERVIEW, column: ORIGIN, row: ORIGIN, request: true });
 
-const bindMask = (parts: Parts, sprites: Sprites): Effect.Effect<Bound> =>
+const bindOverview = (parts: Parts, sprites: Sprites): Effect.Effect<Bound> =>
   Effect.gen(function* bind() {
-    const mask = yield* parts.textures.upload(sprites.mask);
     yield* pipe(
       overviewImage(sprites),
       Option.toArray,
@@ -89,7 +88,6 @@ const bindMask = (parts: Parts, sprites: Sprites): Effect.Effect<Bound> =>
       frameGroup: frameGroup({
         device: parts.gpu.device,
         pipelines: parts.pipelines,
-        mask,
         cells: parts.cells,
       }),
     };
@@ -107,7 +105,7 @@ const rendererOf = (parts: Parts): Renderer => {
     },
     animating: (now) => (scene) => isIntro({ scene, now }),
     prepare: (sprites) =>
-      Effect.map(bindMask(parts, sprites), (ready) => {
+      Effect.map(bindOverview(parts, sprites), (ready) => {
         bound = Option.some(ready);
       }),
   };

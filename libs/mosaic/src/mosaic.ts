@@ -22,7 +22,7 @@ const PublishedMosaic = Schema.Struct({
   levels: Schema.Array(Level),
   tile: Schema.Struct({ width: Schema.Int, height: Schema.Int, dir: Schema.String }),
   cells: Schema.Array(Schema.Int),
-  mask: Schema.String,
+  og: Schema.String,
   tiles: Schema.String,
   chunk: Schema.Struct({ size: Schema.Int, dir: Schema.String }),
 });

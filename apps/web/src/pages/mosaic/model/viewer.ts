@@ -10,10 +10,13 @@ type Viewer =
   | Readonly<{ status: "loading" }>
   | Readonly<{ status: "ready"; scene: Scene }>;
 
+type Arrival = "pending" | "arrived";
+
 interface ViewerStore {
   readonly read: () => Viewer;
   readonly write: (viewer: Viewer) => void;
   readonly step: (step: Step) => void;
+  readonly arrive: () => void;
 }
 
 const viewerAtom = Atom.keepAlive(Atom.make<Viewer>({ status: "empty" }));
@@ -29,6 +32,8 @@ const selectionAtom = Atom.make((get) => {
 const statusAtom = Atom.make((get): Viewer["status"] => get(viewerAtom).status);
 
 const searchAtom = Atom.make("");
+
+const arrivalAtom = Atom.keepAlive(Atom.make<Arrival>("pending"));
 
 const onScene =
   (step: Step) =>
@@ -48,6 +53,12 @@ const useViewerStore = (): ViewerStore => {
       read: () => registry.get(viewerAtom),
       write: (viewer) => {
         registry.set(viewerAtom, viewer);
+        registry.set(arrivalAtom, "pending");
+      },
+      arrive: () => {
+        if (registry.get(arrivalAtom) === "pending") {
+          registry.set(arrivalAtom, "arrived");
+        }
       },
       step: (step) => {
         registry.update(viewerAtom, onScene(step));
@@ -59,9 +70,11 @@ const useViewerStore = (): ViewerStore => {
 
 const useViewerStatus = (): Viewer["status"] => useAtomValue(statusAtom);
 
+const useArrival = (): Arrival => useAtomValue(arrivalAtom);
+
 const useSearch = (): string => useAtomValue(searchAtom);
 
 const useSetSearch = (): ((query: string) => void) => useAtomSet(searchAtom);
 
 export type { Viewer, ViewerStore };
-export { useSearch, useSelection, useSetSearch, useViewerStatus, useViewerStore };
+export { useArrival, useSearch, useSelection, useSetSearch, useViewerStatus, useViewerStore };

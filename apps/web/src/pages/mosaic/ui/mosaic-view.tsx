@@ -14,7 +14,7 @@ const MosaicView = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>
   return (
     <>
       <MosaicCanvas mosaic={mosaic} filesBase={base} />
-      {ready && <MosaicOverlay mosaic={mosaic} filesBase={base} />}
+      {ready && <MosaicOverlay mosaic={mosaic} filesBase={base} slug={slug} />}
       {!ready && <MosaicLoading />}
     </>
   );

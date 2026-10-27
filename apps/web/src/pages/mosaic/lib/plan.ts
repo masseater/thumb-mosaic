@@ -55,13 +55,6 @@ const cellSpan = (scene: Scene, cell: number): Span => ({
   rows: ONE,
 });
 
-const gridSpan = (scene: Scene): Span => ({
-  col: ORIGIN,
-  row: ORIGIN,
-  cols: scene.grid.cols,
-  rows: scene.grid.rows,
-});
-
 const visibleRange = (
   offset: number,
   size: number,
@@ -205,4 +198,4 @@ const planOutlines = (scene: Scene): readonly Outline[] => {
 };
 
 export type { Item, Outline, Source, Span };
-export { gridSpan, overview, planImages, planOutlines };
+export { overview, planImages, planOutlines };

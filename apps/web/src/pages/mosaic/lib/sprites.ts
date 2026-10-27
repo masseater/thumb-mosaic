@@ -23,7 +23,6 @@ interface Sheets {
 
 interface Sprites extends Sheets {
   readonly ready: Effect.Effect<void>;
-  readonly mask: HTMLImageElement;
   readonly levelFor: (devicePixels: number) => number;
   readonly tile: (index: number) => Option.Option<HTMLImageElement>;
 }
@@ -124,7 +123,6 @@ const levelFinder =
 
 const createSprites = (source: Source): Sprites => {
   const sheets = pipe(source.mosaic.levels, Array.map(sheetOf(source)));
-  const mask = loadImage(source.fileUrl(source.mosaic.mask), source.onLoad);
   const overview = pipe(
     Array.get(sheets, OVERVIEW),
     Option.map((blocks) => pipe(Record.values(blocks), Array.map(requested))),
@@ -133,11 +131,10 @@ const createSprites = (source: Source): Sprites => {
   return {
     levels: source.mosaic.levels,
     block: blockLookup(sheets),
-    ready: Effect.forEach([mask, ...overview], whenSettled, {
+    ready: Effect.forEach(overview, whenSettled, {
       concurrency: "unbounded",
       discard: true,
     }),
-    mask,
     levelFor: levelFinder(source.mosaic.levels),
     tile: tileCache(source),
   };

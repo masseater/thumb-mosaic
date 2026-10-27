@@ -1,5 +1,5 @@
 import { CELL_HEIGHT, CELL_WIDTH } from "./camera";
-import { gridSpan, planImages, planOutlines } from "./plan";
+import { planImages, planOutlines } from "./plan";
 import type { Outline, Source, Span } from "./plan";
 import type { Scene } from "./scene";
 
@@ -11,7 +11,6 @@ const LANDED = 1;
 const FADE_MS = 600;
 const HOVER_COLOR = "rgba(255, 255, 255, 0.95)";
 const DRAW = "source-over";
-const CLIP = "destination-in";
 
 interface Frame extends Source {
   readonly context: CanvasRenderingContext2D;
@@ -42,12 +41,6 @@ const paint = (frame: Frame, image: HTMLImageElement, span: Span): void => {
   frame.context.drawImage(image, rect.left, rect.top, rect.width, rect.height);
 };
 
-const clipToShape = (frame: Frame): void => {
-  frame.context.globalCompositeOperation = CLIP;
-  paint(frame, frame.sprites.mask, gridSpan(frame.scene));
-  frame.context.globalCompositeOperation = DRAW;
-};
-
 const revealed = (frame: Frame): number =>
   Math.min(LANDED, Math.max(HIDDEN, (frame.now - frame.scene.reveal) / FADE_MS));
 
@@ -57,7 +50,6 @@ const drawMosaic = (frame: Frame): void => {
     paint(frame, item.image, item.span);
   }
   frame.context.globalAlpha = LANDED;
-  clipToShape(frame);
 };
 
 const outline = (frame: Frame, { span, width, kind }: Outline): void => {

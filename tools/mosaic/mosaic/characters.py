@@ -13,6 +13,7 @@ class Character:
     target_url: str
     cols: int
     credit: str
+    og: tuple[int, int, int]
 
 
 CHARACTERS = {
@@ -23,6 +24,7 @@ CHARACTERS = {
         target_url=c["targetUrl"],
         cols=c["cols"],
         credit=c["credit"],
+        og=(c["og"]["col"], c["og"]["row"], c["og"]["cols"]),
     )
     for c in json.loads(SOURCE.read_text())
 }

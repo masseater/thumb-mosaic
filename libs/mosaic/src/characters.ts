@@ -7,6 +7,7 @@ interface Character {
   readonly targetUrl: string;
   readonly cols: number;
   readonly credit: string;
+  readonly og: Readonly<{ col: number; row: number; cols: number }>;
 }
 
 const CHARACTERS: readonly Character[] = characters;
