@@ -40,7 +40,7 @@ const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
 const isLoaded = (image: HTMLImageElement): boolean =>
   image.complete && image.naturalWidth > NO_WIDTH;
 
-const whenSettled = (image: HTMLImageElement): Effect.Effect<void> =>
+const whenLoaded = (image: HTMLImageElement): Effect.Effect<void> =>
   Effect.callback((resume) => {
     if (image.complete) {
       resume(Effect.void);
@@ -52,6 +52,9 @@ const whenSettled = (image: HTMLImageElement): Effect.Effect<void> =>
     image.addEventListener("load", settle, { once: true });
     image.addEventListener("error", settle, { once: true });
   });
+
+const whenSettled = (image: HTMLImageElement): Effect.Effect<void> =>
+  Effect.andThen(whenLoaded(image), Effect.ignore(Effect.tryPromise(() => image.decode())));
 
 const wholeImage = (image: HTMLImageElement): Sprite => ({
   image,
