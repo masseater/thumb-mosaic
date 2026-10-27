@@ -1,7 +1,7 @@
 import { CredentialsFromEnv } from "@distilled.cloud/cloudflare/Credentials";
 import { listObjects, putObject } from "@distilled.cloud/cloudflare/r2";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
-import { FILES_DIR, ORIGINALS_BUCKET } from "@thumb-mosaic/mosaic";
+import { FILES_DIR, ORIGINAL_TYPE, ORIGINALS_BUCKET } from "@thumb-mosaic/mosaic";
 import type { Context } from "effect";
 import {
   Array,
@@ -71,7 +71,7 @@ const command = Command.make(
               ...bucket,
               objectName: `${FILES_DIR}/${file}`,
               body,
-              contentType: "image/jpeg",
+              contentType: ORIGINAL_TYPE,
               cacheControl: IMMUTABLE_CACHE,
             });
           }).pipe(Effect.withSpan("mosaic.upload.file", { attributes: { file } })),

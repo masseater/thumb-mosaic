@@ -1,3 +1,4 @@
+import { ORIGINAL_TYPE } from "@thumb-mosaic/mosaic";
 import { env } from "cloudflare:workers";
 import { Effect, String as Str, pipe } from "effect";
 
@@ -20,6 +21,7 @@ const readOriginal = (key: string): Effect.Effect<Response> =>
       }
       const headers = new Headers();
       object.writeHttpMetadata(headers);
+      headers.set("Content-Type", ORIGINAL_TYPE);
       headers.set("ETag", object.httpEtag);
       return new Response(object.body, { headers });
     }),
