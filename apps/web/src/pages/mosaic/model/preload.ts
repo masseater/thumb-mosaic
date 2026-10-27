@@ -76,9 +76,14 @@ const preloadOf = (slug: string, { seed, choice, mosaic }: Loaded): Preload => (
 const loadMosaic = ({
   queryClient,
   slug,
-}: Readonly<{ queryClient: QueryClient; slug: string }>): Promise<Preload> =>
+  seed,
+}: Readonly<{
+  queryClient: QueryClient;
+  slug: string;
+  seed: Option.Option<number>;
+}>): Promise<Preload> =>
   Effect.runPromise(
-    loadVisit({ queryClient, slug }).pipe(Effect.map((loaded) => preloadOf(slug, loaded))),
+    loadVisit({ queryClient, slug, seed }).pipe(Effect.map((loaded) => preloadOf(slug, loaded))),
   );
 
 const preloadLink = (href: string): PreloadLink => ({

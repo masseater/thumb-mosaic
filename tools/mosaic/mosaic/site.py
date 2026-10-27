@@ -4,6 +4,7 @@ import html
 import io
 import json
 import math
+import os
 import re
 import shutil
 import sys
@@ -16,7 +17,7 @@ from .net import get
 from .characters import Character
 from .solve import variant_path
 
-LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8))
+LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8), ("t", 640, 4))
 TILE = (640, 360)
 QUALITY = 82
 ATLAS_QUALITY = 80
@@ -65,6 +66,16 @@ def _fetch(url: str, fallback: str, cache: Path) -> Path:
     raise RuntimeError(f"サムネイルを取れなかった: {url}")
 
 
+def _sheet(members: list[tuple[int, Path]], spec: tuple[int, int, int, int, int], out: Path, name: str) -> None:
+    cols, w, h, width, side = spec
+    height = width * 9 // 16
+    sheet = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    for cell, path in members:
+        im = Image.open(path).convert("RGB").resize((width, height), Image.LANCZOS)
+        sheet.paste(im, (((cell % cols) % side) * width, ((cell // cols) % side) * height))
+    sheet.save(out / name, quality=ATLAS_QUALITY, method=6)
+
+
 def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, prefix: str, width: int, block: int) -> dict:
     cols, rows = grid
     height = width * 9 // 16
@@ -73,16 +84,16 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
     for cell, path in tiles:
         groups.setdefault(((cell % cols) // side, (cell // cols) // side), []).append((cell, path))
     blocks = []
-    for (bx, by), members in sorted(groups.items()):
-        w = min(side, cols - bx * side) * width
-        h = min(side, rows - by * side) * height
-        sheet = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-        for cell, path in members:
-            im = Image.open(path).convert("RGB").resize((width, height), Image.LANCZOS)
-            sheet.paste(im, (((cell % cols) % side) * width, ((cell // cols) % side) * height))
-        name = f"{prefix}{bx}_{by}.webp"
-        sheet.save(out / name, quality=ATLAS_QUALITY, method=6)
-        blocks.append([bx, by, name])
+    jobs = []
+    with cf.ThreadPoolExecutor(os.cpu_count()) as ex:
+        for (bx, by), members in sorted(groups.items()):
+            w = min(side, cols - bx * side) * width
+            h = min(side, rows - by * side) * height
+            name = f"{prefix}{bx}_{by}.webp"
+            jobs.append(ex.submit(_sheet, members, (cols, w, h, width, side), out, name))
+            blocks.append([bx, by, name])
+    for job in jobs:
+        job.result()
     return {"tw": width, "th": height, "block": side, "blocks": blocks}
 
 
@@ -99,16 +110,11 @@ def _og(tiles: list[tuple[int, Path]], cols: int, crop: tuple[int, int, int], ou
     card.resize(OG_SIZE, Image.LANCZOS).save(out / OG_FILE, quality=QUALITY, optimize=True, progressive=True)
 
 
-def site(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path]) -> None:
-    public, originals = outputs
+def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
     cache.mkdir(parents=True, exist_ok=True)
-    for root in outputs:
-        if (root / ch.slug).exists():
-            shutil.rmtree(root / ch.slug)
-    variants = [
-        _variant(ch, variant_path(data, v), cache, (public / ch.slug / str(v), originals / ch.slug / str(v)))
-        for v in range(ch.variants)
-    ]
+    if (public / ch.slug).exists():
+        shutil.rmtree(public / ch.slug)
+    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v)) for v in range(ch.variants)]
     ids: dict[str, int] = {}
     candidates = [[[ids.setdefault(m["urls"][i], len(ids)), m["errors"][i]] for m in variants] for i in range(len(variants[0]["cells"]))]
     (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
@@ -123,8 +129,7 @@ def site(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path]) -> 
     print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 
-def _variant(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path]) -> dict:
-    public, originals = outputs
+def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
@@ -133,9 +138,6 @@ def _variant(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path])
         paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache), zip(tiles, assignment["fallbacks"])))
     out = public / version
     out.mkdir(parents=True)
-    (originals / version / "t").mkdir(parents=True)
-    for i, path in enumerate(paths):
-        shutil.copyfile(path, originals / version / "t" / f"{i}.jpg")
     cells = [t[0] for t in tiles]
     grid = (assignment["cols"], assignment["rows"])
     levels = [_level(list(zip(cells, paths)), grid, out, *spec) for spec in LEVELS]
@@ -149,7 +151,7 @@ def _variant(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path])
     manifest |= {
         "version": version,
         "levels": levels,
-        "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"},
+        "tile": {"width": TILE[0], "height": TILE[1]},
         "cells": cells,
         "og": OG_FILE,
         "tiles": "tiles.json",

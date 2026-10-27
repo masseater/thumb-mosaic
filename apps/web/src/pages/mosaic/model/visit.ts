@@ -20,6 +20,10 @@ interface Load {
   readonly slug: string;
 }
 
+interface VisitLoad extends Load {
+  readonly seed: Option.Option<number>;
+}
+
 const NO_CANDIDATES: CandidateList = [];
 const NO_CHOICE: readonly number[] = [];
 
@@ -67,9 +71,12 @@ const choiceOf = ({
       ),
   });
 
-const loadVisit = (load: Load): Effect.Effect<Loaded> =>
+const loadVisit = ({ seed: given, ...load }: VisitLoad): Effect.Effect<Loaded> =>
   Effect.gen(function* visit() {
-    const seed = yield* Random.nextInt;
+    const seed = yield* Option.match(given, {
+      onNone: () => Random.nextInt,
+      onSome: Effect.succeed,
+    });
     const mosaic = yield* loadMosaic(load);
     const choice = yield* choiceOf({ load, mosaic, seed });
     return { seed, choice, mosaic };

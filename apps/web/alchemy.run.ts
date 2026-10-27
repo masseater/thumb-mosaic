@@ -34,12 +34,11 @@ const ASSET_HEADERS = pipe(
 const OWNED_ZONE = Option.none<string>();
 
 const web = Effect.gen(function* web() {
-  const ORIGINALS = yield* R2.Bucket("Originals", { name: ORIGINALS_BUCKET });
+  yield* R2.Bucket("Originals", { name: ORIGINALS_BUCKET });
   return yield* Website.Vite("Web", {
     compatibility: COMPATIBILITY,
     logpush: true,
     routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
-    env: { ORIGINALS },
     observability: {
       enabled: true,
       logs: {

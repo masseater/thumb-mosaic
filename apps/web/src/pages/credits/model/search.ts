@@ -1,11 +1,11 @@
-import { Option, Schema } from "effect";
+import { Option } from "effect";
+
+import { seedOf } from "#/shared/lib/seed";
 
 const DEFAULT_SEED = 0;
 
-const decodeSeed = Schema.decodeUnknownOption(Schema.Int);
-
 const creditsSearch = (search: Readonly<Record<string, unknown>>): Readonly<{ seed: number }> => ({
-  seed: Option.getOrElse(decodeSeed(search["seed"]), () => DEFAULT_SEED),
+  seed: Option.getOrElse(seedOf(search), () => DEFAULT_SEED),
 });
 
 export { creditsSearch };

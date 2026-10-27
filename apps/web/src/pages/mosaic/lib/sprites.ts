@@ -1,12 +1,11 @@
-import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
+import { Array, Effect, Option, Record, pipe } from "effect";
 
 import type { Mosaic } from "#/pages/mosaic/api/queries";
 
 import { composeBlock } from "./compose";
-import { tileImage, variantFile } from "./files";
+import { variantFile } from "./files";
 import type { Visit } from "./files";
 
-const TILE_CACHE_SIZE = 384;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
 const OVERVIEW = 0;
@@ -29,7 +28,6 @@ interface Sheets {
 interface Sprites extends Sheets {
   readonly ready: Effect.Effect<void>;
   readonly levelFor: (devicePixels: number) => number;
-  readonly tile: (index: number) => Option.Option<HTMLImageElement>;
 }
 
 interface Source {
@@ -46,12 +44,6 @@ const pendingImage = (onLoad: () => void): HTMLImageElement => {
   const image = new Image();
   image.decoding = "async";
   image.addEventListener("load", onLoad);
-  return image;
-};
-
-const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
-  const image = pendingImage(onLoad);
-  image.src = url;
   return image;
 };
 
@@ -150,26 +142,6 @@ const blockLookup =
       Option.filter(isLoaded),
     );
 
-const tileCache = ({ visit, onLoad }: Source): Sprites["tile"] => {
-  const cache = MutableHashMap.empty<number, HTMLImageElement>();
-  const startLoading = (index: number): Option.Option<HTMLImageElement> => {
-    if (MutableHashMap.size(cache) >= TILE_CACHE_SIZE) {
-      const keys = Array.fromIterable(MutableHashMap.keys(cache));
-      pipe(
-        Array.head(keys),
-        Option.map((oldest) => MutableHashMap.remove(cache, oldest)),
-      );
-    }
-    MutableHashMap.set(cache, index, loadImage(tileImage({ visit, index }), onLoad));
-    return Option.none();
-  };
-  return (index) =>
-    Option.match(MutableHashMap.get(cache, index), {
-      onNone: () => startLoading(index),
-      onSome: (image) => Option.filter(Option.some(image), isLoaded),
-    });
-};
-
 const levelFinder =
   (levels: readonly Level[]) =>
   (devicePixels: number): number =>
@@ -194,7 +166,6 @@ const createSprites = (source: Source): Sprites => {
       discard: true,
     }),
     levelFor: levelFinder(levels),
-    tile: tileCache(source),
   };
 };
 

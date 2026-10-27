@@ -20,20 +20,20 @@
 読み込みのたびに色の差へ乱数の揺らぎを足し、差の小さい候補から同じサムネイルを二度使わないように割り当てる。
 揺らぎの大きさは `assign.ts` の `TEMPERATURE` で決める。今の値では、色の差は最良の通りより 1〜2% 増えるだけで、開くたびに約半分のマスが入れ替わる。
 そのため、開いた人はそれぞれ違うモザイクを見る。
-クレジットの一覧は URL の `seed` から同じ組み合わせを作り直して出す。
+開いたときの揺らぎの種は URL の `seed` に入るので、その URL を開けば同じモザイクになる。
+クレジットの一覧も同じ `seed` から組み合わせを作り直して出す。
 
 ```sh
 cd tools/mosaic
 uv run mosaic pool miku    # VocaDB から曲とサムネイルを集める
 uv run mosaic solve miku   # 割り当てを libs/mosaic/data/miku/<通りの番号>.json に書く
-uv run mosaic site         # 縮小画像を apps/web/public/files、原寸を .cache/originals に書く
+uv run mosaic site         # 画像を apps/web/public/files に書く
 ```
 
 リポジトリに入るのは割り当ての結果だけで、画像は入れない。
 main の CI がデプロイの前に `site` を動かし、取ったサムネイルを Actions のキャッシュに残す。
-縮小画像は Worker の静的アセットで配る。
-原寸のサムネイルは、8 通りぶんで静的アセットのファイル数の上限を超える。
-そこで、デプロイの後に `tools/mosaic-upload` が R2 へ上げ、Worker が同じ URL で返す。
+画像はすべて Worker の静的アセットで配り、アクセスが増えても配信に料金がかからないようにしている。
+静的アセットはファイル数に上限があるので、原寸のサムネイルも縦横 4 枚ずつを 1 枚の画像にまとめる。
 
 キャラクターは `libs/mosaic/src/characters.json` に足す。
 

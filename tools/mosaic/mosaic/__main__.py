@@ -10,7 +10,6 @@ ROOT = Path(__file__).resolve().parent.parent
 REPO = ROOT.parents[1]
 DATA = REPO / "libs" / "mosaic" / "data"
 PUBLIC = REPO / "apps" / "web" / "public" / "files"
-ORIGINALS = ROOT / ".cache" / "originals"
 
 
 def main() -> None:
@@ -28,7 +27,7 @@ def main() -> None:
         if args.step in ("solve", "all"):
             solve(ch, cache, data)
         if args.step in ("site", "all"):
-            site(ch, data, ROOT / ".cache" / "tiles", (PUBLIC, ORIGINALS))
+            site(ch, data, ROOT / ".cache" / "tiles", PUBLIC)
 
 
 if __name__ == "__main__":
