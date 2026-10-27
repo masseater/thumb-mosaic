@@ -260,6 +260,9 @@ catalogs:
     puppeteer-core:
       specifier: 25.14.0
       version: 25.14.0
+    simple-icons:
+      specifier: 16.36.0
+      version: 16.36.0
     skills:
       specifier: 1.7.4
       version: 1.7.4
@@ -524,6 +527,9 @@ importers:
       scheduler:
         specifier: 0.28.0
         version: 0.28.0
+      simple-icons:
+        specifier: 'catalog:'
+        version: 16.36.0
       tailwind-merge:
         specifier: 3.7.0
         version: 3.7.0
@@ -8545,6 +8551,10 @@ packages:
 
   simple-git@4.0.2:
     resolution: {integrity: sha512-l0sIsv9VrPwovKELFDBOj/lhmIcbMvxBk2B+hRhsMM4/VL3gKtuZvYnBNixVo+N/0HnqQx2cBdLvxnAbygHpqA==}
+
+  simple-icons@16.36.0:
+    resolution: {integrity: sha512-+VNPPkqSOLidFeSgBKUWX4n50WPpDC09hav+BgS26anIF1oQOlGBb8LvwGR+6fYRjo+B6CiKzNBceMPkSVXANQ==}
+    engines: {node: '>=0.12.18'}
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -18782,6 +18792,8 @@ snapshots:
       debug: 4.4.3(supports-color@7.2.0)
     transitivePeerDependencies:
       - supports-color
+
+  simple-icons@16.36.0: {}
 
   sirv@3.0.2:
     dependencies:
