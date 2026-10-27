@@ -6,16 +6,25 @@ import { assignVariants } from "./assign.ts";
 const CELLS = 6;
 const VARIANTS = 3;
 const SEED = 7;
+const POOR_FIT = 10_000;
+const BEST = 0;
 
 const CANDIDATES = Array.makeBy(CELLS, (cell) =>
-  Array.makeBy(VARIANTS, (variant) => (cell + variant) % CELLS),
+  Array.makeBy(VARIANTS, (variant): readonly [number, number] => [
+    (cell + variant) % CELLS,
+    variant * POOR_FIT,
+  ]),
 );
 
 const thumbnailsOf = (choice: readonly number[]): readonly Option.Option<number>[] =>
   pipe(
     choice,
     Array.map((variant, cell) =>
-      pipe(Array.get(CANDIDATES, cell), Option.flatMap(Array.get(variant))),
+      pipe(
+        Array.get(CANDIDATES, cell),
+        Option.flatMap(Array.get(variant)),
+        Option.map(([thumbnail]) => thumbnail),
+      ),
     ),
   );
 
@@ -32,12 +41,20 @@ const sameChoice = ([first, second]: readonly [readonly number[], readonly numbe
   );
 
 const distinct = Effect.runPromise(assigned().pipe(Effect.map(distinctThumbnails)));
+const allBest = (choice: readonly number[]): boolean =>
+  pipe(
+    choice,
+    Array.every((variant) => variant === BEST),
+  );
+const bestFit = Effect.runPromise(assigned().pipe(Effect.map(allBest)));
 const repeatable = Effect.runPromise(
   Effect.all([assigned(), assigned()]).pipe(Effect.map(sameChoice)),
 );
 
 describe("assignVariants", () => {
   it("uses each thumbnail once", () => expect(distinct).resolves.toBe(CELLS));
+
+  it("prefers thumbnails that fit the cell", () => expect(bestFit).resolves.toBe(true));
 
   it("returns the same choice for the same seed", () => expect(repeatable).resolves.toBe(true));
 });

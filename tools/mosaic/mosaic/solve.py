@@ -18,6 +18,7 @@ RANDOM_PENALTY = 10.0
 CHUNK = 2000
 COVERAGE = 0.05
 REUSE_PENALTY = 1.0
+ERROR_SCALE = 10000
 
 
 def load_target(ch: Character, cache: Path) -> Image.Image:
@@ -106,6 +107,7 @@ def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path
     pool, chosen = picks
     per_block = np.sqrt(((cfeats - pool[chosen]) ** 2).reshape(len(cells), BLOCKS_X * BLOCKS_Y, 3).sum(2))
     delta = (per_block * weights).sum() / weights.sum()
+    errors = (per_block * weights).sum(1) / np.maximum(weights.sum(1), np.finfo(np.float32).tiny)
     picked = sorted(zip(cells.tolist(), chosen.tolist()))
     tiles = [entries[p] for _, p in picked]
     assignment = {
@@ -116,6 +118,7 @@ def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path
         "pool": len(pool),
         "meanDelta": round(float(delta), 4),
         "tiles": [[c, e["name"], e["artist"], e["url"], SERVICE_LABEL[e["service"]]] for (c, _), e in zip(picked, tiles)],
+        "errors": [round(float(e) * ERROR_SCALE) for e in errors],
         "fallbacks": [e["thumbs"][0] if e["service"] == "NicoNicoDouga" else "" for e in tiles],
     }
     path.write_text(json.dumps(assignment, ensure_ascii=False, separators=(",", ":")) + "\n")
