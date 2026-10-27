@@ -11,7 +11,7 @@ const devtoolsPlugins = [
 ];
 
 const RootDocument = ({ children }: Readonly<{ children: ReactNode }>): ReactNode => (
-  <html lang="en">
+  <html lang="ja">
     <head>
       <meta charSet="utf-8" />
       <HeadContent />

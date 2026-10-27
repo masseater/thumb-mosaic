@@ -5,6 +5,8 @@ import type { EdenOptionsProxy } from "eden-tanstack-react-query";
 import { Effect } from "effect";
 import type { AnyElysia } from "elysia";
 
+import { BASE_PATH } from "#/shared/config";
+
 const SERVER_ORIGIN = "http://localhost";
 
 const serverClient = <App extends AnyElysia>(load: () => Promise<App>): Treaty.Create<App> =>
@@ -18,7 +20,7 @@ const serverClient = <App extends AnyElysia>(load: () => Promise<App>): Treaty.C
   });
 
 const browserClient = <App extends AnyElysia>(): Treaty.Create<App> =>
-  treaty<App>(globalThis.location.origin);
+  treaty<App>(`${globalThis.location.origin}${BASE_PATH}`);
 
 const createQueries = <App extends AnyElysia>(client: Treaty.Create<App>): EdenOptionsProxy<App> =>
   createEdenOptionsProxy<App>({ client });

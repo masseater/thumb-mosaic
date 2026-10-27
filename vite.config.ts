@@ -98,11 +98,24 @@ export default defineConfig({
         {
           ignoreInferredTypes: true,
           allow: [
-            { from: "lib", name: "Request" },
+            {
+              from: "lib",
+              name: [
+                "Request",
+                "HTMLCanvasElement",
+                "HTMLImageElement",
+                "CanvasRenderingContext2D",
+                "PointerEvent",
+                "WheelEvent",
+                "KeyboardEvent",
+                "MouseEvent",
+                "AbortSignal",
+              ],
+            },
             {
               from: "package",
               package: "@cloudflare/workers-types",
-              name: "AnalyticsEngineDataset",
+              name: ["AnalyticsEngineDataset", "R2ObjectBody"],
             },
             { from: "package", package: "@tanstack/query-core", name: "QueryClient" },
             {
@@ -233,7 +246,6 @@ export default defineConfig({
           "renovate",
           "actions-lint",
           "steiger-all",
-          "db-check-all",
           "fallow-all",
           "audit",
         ],
@@ -242,7 +254,6 @@ export default defineConfig({
       eslint: "NODE_OPTIONS=--max-old-space-size=4096 eslint --max-warnings 0 .",
       syncpack: "syncpack lint",
       "steiger-all": "vp run -r steiger",
-      "db-check-all": "vp run -r db:check",
       "fallow-all": "vp run -r fallow",
       audit: {
         command: "vp pm audit",
