@@ -49,6 +49,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "catalog:",
     "@vitejs/plugin-rsc": "catalog:",
+    "@webgpu/types": "catalog:",
     "alchemy": "catalog:stack",
     "steiger": "catalog:stack",
     "typescript": "catalog:stack",

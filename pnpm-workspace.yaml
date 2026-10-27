@@ -42,6 +42,7 @@ catalog:
   chrome-launcher: 1.2.2
   lighthouse: 13.5.0
   puppeteer-core: 25.14.0
+  "@webgpu/types": 0.1.74
 catalogs:
   stack:
     "@distilled.cloud/cloudflare": 1.0.0-rc.13
