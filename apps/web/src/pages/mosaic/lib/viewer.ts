@@ -5,7 +5,8 @@ import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 import type { Point, Size } from "./camera";
 import { leave, pointerDown, pointerMove, pointerUp } from "./gesture";
 import { advance } from "./motion";
-import { drawScene, isFading } from "./render";
+import { createRenderer } from "./renderer";
+import type { Renderer } from "./renderer-contract";
 import type { Scene } from "./scene";
 import { createScene, flyHome, resize, select, settle, zoomAt, zoomInAt } from "./scene";
 import type { Mosaic, Sprites } from "./sprites";
@@ -22,7 +23,6 @@ const KEY_PAN = 80;
 const NO_PAN = 0;
 const HALF = 0.5;
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-const ACCENT_PROPERTY = "--primary";
 
 interface Mount {
   readonly canvas: HTMLCanvasElement;
@@ -173,23 +173,18 @@ const advanceFor =
 const needsDraw = (
   scene: Scene,
   drawn: Option.Option<Scene>,
-  state: Readonly<{ dirty: boolean; now: number }>,
+  state: Readonly<{ dirty: boolean; now: number; renderer: Renderer }>,
 ): boolean =>
   state.dirty ||
   !Option.contains(drawn, scene) ||
   scene.motion.status !== "still" ||
-  isFading(state.now)(scene);
+  state.renderer.animating(state.now)(scene);
 
 const startLoop = (
-  { canvas, store }: Pick<Mount, "canvas" | "store">,
+  { store, renderer }: Readonly<{ store: ViewerStore; renderer: Renderer }>,
   sprites: Readonly<{ sprites: Sprites; dirty: () => boolean }>,
   signal: AbortSignal,
 ): void => {
-  const context = canvas.getContext("2d");
-  if (context === null) {
-    return;
-  }
-  const accent = getComputedStyle(canvas).getPropertyValue(ACCENT_PROPERTY);
   const reduced = prefersReducedMotion();
   let drawn: Option.Option<Scene> = Option.none();
   const frame = (now: number): void => {
@@ -200,9 +195,9 @@ const startLoop = (
     const viewer = store.read();
     if (
       viewer.status === "ready" &&
-      needsDraw(viewer.scene, drawn, { dirty: sprites.dirty(), now })
+      needsDraw(viewer.scene, drawn, { dirty: sprites.dirty(), now, renderer })
     ) {
-      drawScene({ context, scene: viewer.scene, sprites: sprites.sprites, now, accent });
+      renderer.draw({ scene: viewer.scene, sprites: sprites.sprites, now });
       drawn = Option.some(viewer.scene);
     }
     requestAnimationFrame(frame);
@@ -242,11 +237,22 @@ const revealWhenReady = ({
   store,
   sprites,
   signal,
+  invalidation,
 }: Readonly<
-  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal }
+  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal; invalidation: Invalidation }
 >): Effect.Effect<void> =>
   Effect.gen(function* reveal() {
+    const renderer = yield* createRenderer({
+      canvas,
+      cells: mosaic.cells,
+      onReady: invalidation.mark,
+    });
+    if (Option.isNone(renderer)) {
+      return;
+    }
+    startLoop({ store, renderer: renderer.value }, { sprites, dirty: invalidation.take }, signal);
     yield* sprites.ready;
+    yield* renderer.value.prepare(sprites);
     if (!signal.aborted) {
       store.write({
         status: "ready",
@@ -270,8 +276,16 @@ const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) 
   });
   store.write({ status: "loading" });
   bindAll(canvas, store, controller.signal);
-  startLoop({ canvas, store }, { sprites, dirty: invalidation.take }, controller.signal);
-  Effect.runFork(revealWhenReady({ canvas, mosaic, store, sprites, signal: controller.signal }));
+  Effect.runFork(
+    revealWhenReady({
+      canvas,
+      mosaic,
+      store,
+      sprites,
+      signal: controller.signal,
+      invalidation,
+    }),
+  );
 
   return () => {
     controller.abort();

@@ -17,6 +17,18 @@ import {
   turnedOff,
 } from "./lint.config.ts";
 
+const WEBGPU_HANDLES = [
+  "GPUDevice",
+  "GPUCanvasContext",
+  "GPUTexture",
+  "GPUBuffer",
+  "GPUBindGroup",
+  "GPUBindGroupLayout",
+  "GPUPipelineLayout",
+  "GPURenderPipeline",
+  "GPUSampler",
+];
+
 export default defineConfig({
   staged: {
     "!(*.md)": "vp check --fix",
@@ -77,6 +89,15 @@ export default defineConfig({
       ...shadcnRules,
       ...baselineJsRules,
       ...baselineJs.configs.recommended().rules,
+      "baseline-js/use-baseline": [
+        "error",
+        {
+          available: "widely",
+          includeWebApis: { preset: "auto" },
+          includeJsBuiltins: { preset: "auto" },
+          ignoreFeatures: ["webgpu"],
+        },
+      ],
       ...htmlReactRules,
       ...reactHooksRules,
       ...eslintReactRules,
@@ -110,7 +131,14 @@ export default defineConfig({
                 "KeyboardEvent",
                 "MouseEvent",
                 "AbortSignal",
+                "ImageBitmap",
+                ...WEBGPU_HANDLES,
               ],
+            },
+            {
+              from: "package",
+              package: "@webgpu/types",
+              name: WEBGPU_HANDLES,
             },
             {
               from: "package",
