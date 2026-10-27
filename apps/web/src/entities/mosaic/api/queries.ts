@@ -35,4 +35,5 @@ const mosaicQuery = (slug: string): MosaicQuery => ({
   staleTime: Number.POSITIVE_INFINITY,
 });
 
+export type { Mosaic, MosaicQuery };
 export { mosaicQuery };

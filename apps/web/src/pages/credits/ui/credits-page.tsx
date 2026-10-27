@@ -4,25 +4,24 @@ import type { ReactNode } from "react";
 
 import { mosaicQuery } from "#/entities/mosaic";
 
-import { CreditsHeader } from "./credits-header";
-import { CreditsList } from "./credits-list";
-import { CreditsSources } from "./credits-sources";
+import { CreditsContent } from "./credits-content";
 
-const LOADING = "一覧を読み込んでいます";
-const FAILED = "一覧を読み込めませんでした";
+const MESSAGES = {
+  pending: "一覧を読み込んでいます",
+  error: "一覧を読み込めませんでした",
+} as const;
 
 const route = getRouteApi("/$slug_/credits");
 
 const CreditsPage = (): ReactNode => {
   const { slug } = route.useParams();
   const query = useQuery(mosaicQuery(slug));
+  if (query.status === "success") {
+    return <CreditsContent mosaic={query.data} slug={slug} />;
+  }
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6 sm:p-8">
-      {query.status === "pending" && <p className="text-muted-foreground text-sm">{LOADING}</p>}
-      {query.status === "error" && <p className="text-muted-foreground text-sm">{FAILED}</p>}
-      {query.status === "success" && <CreditsHeader mosaic={query.data} slug={slug} />}
-      {query.status === "success" && <CreditsSources />}
-      {query.status === "success" && <CreditsList tiles={query.data.tiles} />}
+    <main className="mx-auto max-w-3xl p-6 sm:p-8">
+      <p className="text-muted-foreground text-sm">{MESSAGES[query.status]}</p>
     </main>
   );
 };
