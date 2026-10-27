@@ -1,13 +1,16 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { Array, Option, pipe } from "effect";
+import { Array, Effect, Option, pipe } from "effect";
 
-import { bundledMosaic } from "#/pages/mosaic/api/bundled";
-import { mosaicQuery } from "#/pages/mosaic/api/queries";
-import type { Mosaic } from "#/pages/mosaic/api/queries";
-import { filesBase } from "#/pages/mosaic/lib/files";
+import { slugFile, variantFile } from "#/pages/mosaic/lib/files";
+import type { Visit } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
 
+import { loadVisit } from "./visit";
+import type { Assignment, Loaded } from "./visit";
+
 const OVERVIEW = 0;
+const FIRST = 0;
+const NEXT = 1;
 const BLOCK_FILE = 2;
 
 interface Card {
@@ -17,7 +20,7 @@ interface Card {
   readonly url: string;
 }
 
-interface Preload {
+interface Preload extends Assignment {
   readonly images: readonly string[];
   readonly card: Option.Option<Card>;
 }
@@ -39,44 +42,45 @@ interface Head {
   meta: Meta[];
 }
 
-const overviewImages = ({
-  mosaic,
-  slug,
-}: Readonly<{ mosaic: Mosaic; slug: string }>): readonly string[] => {
-  const base = filesBase({ slug, version: mosaic.version });
-  return pipe(
-    Array.get(mosaic.levels, OVERVIEW),
+const overviewImages = (visit: Omit<Visit, "seed" | "choice">): readonly string[] =>
+  pipe(
+    Array.get(visit.mosaic.levels, OVERVIEW),
     Option.map((level) =>
       pipe(
-        level.blocks,
-        Array.map((block) => `${base}/${block[BLOCK_FILE]}`),
+        Array.cartesian(Array.range(FIRST, visit.mosaic.variants.length - NEXT), level.blocks),
+        Array.map(([variant, block]) => variantFile(visit)(variant, block[BLOCK_FILE])),
       ),
     ),
     Option.getOrElse((): readonly string[] => []),
   );
-};
 
-const cardOf = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>): Card => ({
+const cardOf = ({ mosaic, slug }: Omit<Visit, "seed" | "choice">): Card => ({
   title: `${slug}.mosaic`,
   description: `動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
-  image: `${SITE_ORIGIN}${filesBase({ slug, version: mosaic.version })}/${mosaic.og}`,
+  image: `${SITE_ORIGIN}${slugFile({ slug, file: mosaic.og })}`,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,
+});
+
+const preloadOf = (slug: string, { seed, choice, mosaic }: Loaded): Preload => ({
+  seed,
+  choice,
+  images: Option.match(mosaic, {
+    onNone: (): readonly string[] => [],
+    onSome: (found) => overviewImages({ slug, mosaic: found }),
+  }),
+  card: pipe(
+    mosaic,
+    Option.map((found) => cardOf({ slug, mosaic: found })),
+  ),
 });
 
 const loadMosaic = ({
   queryClient,
   slug,
-}: Readonly<{ queryClient: QueryClient; slug: string }>): Preload =>
-  Option.match(bundledMosaic(slug), {
-    onNone: (): Preload => ({ images: [], card: Option.none() }),
-    onSome: (mosaic) => {
-      queryClient.setQueryData(mosaicQuery(slug).queryKey, mosaic);
-      return {
-        images: overviewImages({ mosaic, slug }),
-        card: Option.some(cardOf({ mosaic, slug })),
-      };
-    },
-  });
+}: Readonly<{ queryClient: QueryClient; slug: string }>): Promise<Preload> =>
+  Effect.runPromise(
+    loadVisit({ queryClient, slug }).pipe(Effect.map((loaded) => preloadOf(slug, loaded))),
+  );
 
 const preloadLink = (href: string): PreloadLink => ({
   rel: "preload",

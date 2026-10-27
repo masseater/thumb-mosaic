@@ -21,7 +21,7 @@ def main() -> None:
     for slug in args.characters or sorted(CHARACTERS):
         ch = CHARACTERS[slug]
         cache = ROOT / ".cache" / slug
-        data = DATA / f"{slug}.json"
+        data = DATA / slug
         if args.step in ("pool", "all"):
             build_pool(ch, cache, args.limit)
         if args.step in ("solve", "all"):

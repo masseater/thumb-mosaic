@@ -2,6 +2,10 @@ import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
 
 import type { Mosaic } from "#/pages/mosaic/api/queries";
 
+import { composeBlock } from "./compose";
+import { tileImage } from "./files";
+import type { Visit } from "./files";
+
 const TILE_CACHE_SIZE = 384;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
@@ -28,14 +32,13 @@ interface Sprites extends Sheets {
 }
 
 interface Source {
-  readonly mosaic: Mosaic;
-  readonly fileUrl: (file: string) => string;
+  readonly visit: Visit;
   readonly onLoad: () => void;
 }
 
 interface Block {
   readonly image: HTMLImageElement;
-  readonly url: string;
+  readonly start: () => void;
 }
 
 const pendingImage = (onLoad: () => void): HTMLImageElement => {
@@ -54,27 +57,63 @@ const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
 const isLoaded = (image: HTMLImageElement): boolean =>
   image.complete && image.naturalWidth > NO_WIDTH;
 
-const whenSettled = (image: HTMLImageElement): Effect.Effect<void> =>
-  Effect.ignore(Effect.tryPromise(() => image.decode()));
+const whenLoaded = (image: HTMLImageElement): Effect.Effect<unknown> =>
+  Effect.callback<unknown>((resume) => {
+    if (isLoaded(image)) {
+      resume(Effect.void);
+      return;
+    }
+    image.addEventListener(
+      "load",
+      () => {
+        resume(Effect.void);
+      },
+      { once: true },
+    );
+    image.addEventListener(
+      "error",
+      () => {
+        resume(Effect.void);
+      },
+      { once: true },
+    );
+  });
 
 const blockKey = (column: number, row: number): string => `${column}_${row}`;
 
+const blockOf = ({ visit, onLoad }: Source, level: Level, at: Level["blocks"][number]): Block => {
+  const image = pendingImage(onLoad);
+  const [column, row, file] = at;
+  let started = false;
+  return {
+    image,
+    start: () => {
+      if (!started) {
+        started = true;
+        Effect.runFork(
+          Effect.map(composeBlock({ visit, level, column, row, file }), (url) => {
+            image.src = url;
+          }),
+        );
+      }
+    },
+  };
+};
+
 const sheetOf =
-  ({ fileUrl, onLoad }: Source) =>
+  (source: Source) =>
   (level: Level): Record.ReadonlyRecord<string, Block> =>
     pipe(
       level.blocks,
-      Array.map(([column, row, file]): readonly [string, Block] => [
-        blockKey(column, row),
-        { image: pendingImage(onLoad), url: fileUrl(file) },
-      ]),
+      Array.map((at): readonly [string, Block] => {
+        const [column, row] = at;
+        return [blockKey(column, row), blockOf(source, level, at)];
+      }),
       Record.fromEntries,
     );
 
-const requested = ({ image, url }: Block): HTMLImageElement => {
-  if (image.getAttribute("src") === null) {
-    image.src = url;
-  }
+const requested = ({ image, start }: Block): HTMLImageElement => {
+  start();
   return image;
 };
 
@@ -93,7 +132,7 @@ const blockLookup =
       Option.filter(isLoaded),
     );
 
-const tileCache = ({ mosaic, fileUrl, onLoad }: Source): Sprites["tile"] => {
+const tileCache = ({ visit, onLoad }: Source): Sprites["tile"] => {
   const cache = MutableHashMap.empty<number, HTMLImageElement>();
   const startLoading = (index: number): Option.Option<HTMLImageElement> => {
     if (MutableHashMap.size(cache) >= TILE_CACHE_SIZE) {
@@ -103,7 +142,7 @@ const tileCache = ({ mosaic, fileUrl, onLoad }: Source): Sprites["tile"] => {
         Option.map((oldest) => MutableHashMap.remove(cache, oldest)),
       );
     }
-    MutableHashMap.set(cache, index, loadImage(fileUrl(`${mosaic.tile.dir}/${index}.jpg`), onLoad));
+    MutableHashMap.set(cache, index, loadImage(tileImage({ visit, index }), onLoad));
     return Option.none();
   };
   return (index) =>
@@ -122,20 +161,21 @@ const levelFinder =
     );
 
 const createSprites = (source: Source): Sprites => {
-  const sheets = pipe(source.mosaic.levels, Array.map(sheetOf(source)));
+  const { levels } = source.visit.mosaic;
+  const sheets = pipe(levels, Array.map(sheetOf(source)));
   const overview = pipe(
     Array.get(sheets, OVERVIEW),
     Option.map((blocks) => pipe(Record.values(blocks), Array.map(requested))),
     Option.getOrElse((): readonly HTMLImageElement[] => []),
   );
   return {
-    levels: source.mosaic.levels,
+    levels,
     block: blockLookup(sheets),
-    ready: Effect.forEach(overview, whenSettled, {
+    ready: Effect.forEach(overview, whenLoaded, {
       concurrency: "unbounded",
       discard: true,
     }),
-    levelFor: levelFinder(source.mosaic.levels),
+    levelFor: levelFinder(levels),
     tile: tileCache(source),
   };
 };

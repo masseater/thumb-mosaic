@@ -14,6 +14,7 @@ class Character:
     cols: int
     credit: str
     og: tuple[int, int, int]
+    variants: int
 
 
 CHARACTERS = {
@@ -25,6 +26,7 @@ CHARACTERS = {
         cols=c["cols"],
         credit=c["credit"],
         og=(c["og"]["col"], c["og"]["row"], c["og"]["cols"]),
+        variants=c["variants"],
     )
     for c in json.loads(SOURCE.read_text())
 }

@@ -14,12 +14,15 @@ const route = getRouteApi("/$slug");
 
 const MosaicPage = (): ReactNode => {
   const { slug } = route.useParams();
+  const { seed, choice } = route.useLoaderData();
   const query = useQuery(mosaicQuery(slug));
   return (
     <main className="bg-background fixed inset-0 overflow-hidden">
       {query.status === "pending" && <MosaicLoading />}
       {query.status === "error" && <MosaicStatus message={FAILED} />}
-      {query.status === "success" && <MosaicView mosaic={query.data} slug={slug} />}
+      {query.status === "success" && (
+        <MosaicView slug={slug} seed={seed} choice={choice} mosaic={query.data} />
+      )}
     </main>
   );
 };

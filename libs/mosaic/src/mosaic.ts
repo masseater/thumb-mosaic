@@ -16,15 +16,16 @@ const PublishedMosaic = Schema.Struct({
   credit: Schema.String,
   cols: Schema.Int,
   rows: Schema.Int,
-  pool: Schema.Int,
-  meanDelta: Schema.Finite,
-  version: Schema.String,
+  variants: Schema.Array(Schema.Struct({ version: Schema.String, meanDelta: Schema.Finite })),
   levels: Schema.Array(Level),
   tile: Schema.Struct({ width: Schema.Int, height: Schema.Int, dir: Schema.String }),
   cells: Schema.Array(Schema.Int),
   og: Schema.String,
   tiles: Schema.String,
+  candidates: Schema.String,
   chunk: Schema.Struct({ size: Schema.Int, dir: Schema.String }),
 });
 
-export { PublishedMosaic, Tile, Tiles };
+const Candidates = Schema.Array(Schema.Array(Schema.Int));
+
+export { Candidates, PublishedMosaic, Tile, Tiles };

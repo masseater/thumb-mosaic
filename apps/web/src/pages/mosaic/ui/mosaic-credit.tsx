@@ -6,12 +6,18 @@ import { THUMBNAIL_RIGHTS } from "#/shared/config";
 
 const CREDITS = "クレジット";
 
-const MosaicCredit = ({ slug }: Readonly<{ slug: string }>): ReactNode => {
+const MosaicCredit = ({ slug, seed }: Readonly<{ slug: string; seed: number }>): ReactNode => {
   const params = useMemo(() => ({ slug }), [slug]);
+  const search = useMemo(() => ({ seed }), [seed]);
   return (
     <footer className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 text-muted-foreground absolute inset-x-0 bottom-0 flex flex-wrap justify-center gap-x-4 gap-y-1 px-4 py-3 text-center text-xs duration-700 ease-out">
       <span>{THUMBNAIL_RIGHTS}</span>
-      <Link to="/$slug/credits" params={params} className="underline underline-offset-2">
+      <Link
+        to="/$slug/credits"
+        params={params}
+        search={search}
+        className="underline underline-offset-2"
+      >
         {CREDITS}
       </Link>
     </footer>

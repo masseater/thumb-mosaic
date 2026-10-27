@@ -1,21 +1,18 @@
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 
-import type { Mosaic } from "#/pages/mosaic/api/queries";
+import type { Visit } from "#/pages/mosaic/lib/files";
 import { mountViewer } from "#/pages/mosaic/lib/viewer";
 import { useViewerStore } from "#/pages/mosaic/model/viewer";
 
 const LABEL =
   "モザイクアート。ドラッグで移動、ホイールかピンチで拡大、サムネイルを押すと動画の情報が出ます";
 
-const MosaicCanvas = ({
-  mosaic,
-  filesBase,
-}: Readonly<{ mosaic: Mosaic; filesBase: string }>): ReactNode => {
+const MosaicCanvas = ({ visit }: Readonly<{ visit: Visit }>): ReactNode => {
   const store = useViewerStore();
   const attach = useCallback(
-    (canvas: HTMLCanvasElement): (() => void) => mountViewer({ canvas, mosaic, filesBase, store }),
-    [mosaic, filesBase, store],
+    (canvas: HTMLCanvasElement): (() => void) => mountViewer({ canvas, visit, store }),
+    [visit, store],
   );
   return (
     <canvas
