@@ -51,5 +51,21 @@ const tilesQuery = ({
   };
 };
 
+const tileChunkQuery = ({
+  slug,
+  version,
+  chunk,
+  index,
+}: Readonly<
+  Pick<Mosaic, "version" | "chunk"> & { slug: string; index: number }
+>): Query<TileList> => {
+  const path = `${versionPath({ slug, version })}/${chunk.dir}/${Math.floor(index / chunk.size)}.json`;
+  return {
+    queryKey: ["tiles", path],
+    queryFn: ({ signal }) => runtime.runPromise(fetchTiles(path), { signal }),
+    staleTime: Number.POSITIVE_INFINITY,
+  };
+};
+
 export type { Mosaic, Query, TileList };
-export { mosaicQuery, tilesQuery };
+export { mosaicQuery, tileChunkQuery, tilesQuery };

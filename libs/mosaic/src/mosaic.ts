@@ -24,6 +24,7 @@ const PublishedMosaic = Schema.Struct({
   cells: Schema.Array(Schema.Int),
   mask: Schema.String,
   tiles: Schema.String,
+  chunk: Schema.Struct({ size: Schema.Int, dir: Schema.String }),
 });
 
 export { PublishedMosaic, Tile, Tiles };
