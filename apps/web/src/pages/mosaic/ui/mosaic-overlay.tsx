@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import type { ReactNode } from "react";
 
-import type { Mosaic } from "#/pages/mosaic/lib/sprites";
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { useTile } from "#/pages/mosaic/model/tiles";
 import { useArrival, useSelection } from "#/pages/mosaic/model/viewer";
 
@@ -20,7 +20,7 @@ const MosaicOverlay = ({
   return (
     <>
       {arrived && <MosaicToolbar />}
-      {arrived && <MosaicCredit credit={mosaic.credit} slug={slug} />}
+      {arrived && <MosaicCredit slug={slug} />}
       {Option.isSome(selected) && (
         <TileCard
           tile={selected.value.tile}

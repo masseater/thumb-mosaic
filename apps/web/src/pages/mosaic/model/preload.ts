@@ -1,8 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Array, Option, pipe } from "effect";
 
-import { bundledMosaic, mosaicQuery } from "#/entities/mosaic";
-import type { Mosaic } from "#/entities/mosaic";
+import { bundledMosaic } from "#/pages/mosaic/api/bundled";
+import { mosaicQuery } from "#/pages/mosaic/api/queries";
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { filesBase } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
 
@@ -56,7 +57,7 @@ const overviewImages = ({
 };
 
 const cardOf = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>): Card => ({
-  title: `${mosaic.character}のサムネイルモザイク`,
+  title: `${slug}.mosaic`,
   description: `${mosaic.cells.length.toLocaleString("ja-JP")} 本の動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
   image: `${SITE_ORIGIN}${filesBase({ slug, version: mosaic.version })}/${mosaic.og}`,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,

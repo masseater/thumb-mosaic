@@ -1,5 +1,6 @@
 import { Effect, Option, Record } from "effect";
 
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 
 import type { Point, Size } from "./camera";
@@ -9,7 +10,7 @@ import type { Invalidation } from "./loop";
 import { createRenderer } from "./renderer";
 import type { Scene } from "./scene";
 import { createScene, flyHome, resize, select, settle, zoomAt, zoomInAt } from "./scene";
-import type { Mosaic, Sprites } from "./sprites";
+import type { Sprites } from "./sprites";
 import { createSprites } from "./sprites";
 
 const HIGH_DENSITY = "(min-resolution: 2dppx)";

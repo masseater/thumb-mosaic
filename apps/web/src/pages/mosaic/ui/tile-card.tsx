@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { TileList } from "#/entities/mosaic";
-import type { Mosaic } from "#/pages/mosaic/lib/sprites";
+import type { TileList, Mosaic } from "#/pages/mosaic/api/queries";
 
 import { TileActions } from "./tile-actions";
 import { TileText } from "./tile-text";

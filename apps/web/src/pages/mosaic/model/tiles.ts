@@ -2,8 +2,8 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { Array, Option, pipe } from "effect";
 
-import { mosaicQuery, tileChunkQuery, tilesQuery } from "#/entities/mosaic";
-import type { Mosaic, TileList } from "#/entities/mosaic";
+import { mosaicQuery, tileChunkQuery, tilesQuery } from "#/pages/mosaic/api/queries";
+import type { Mosaic, TileList } from "#/pages/mosaic/api/queries";
 
 const NO_TILES: TileList = [];
 const FIRST = 0;
