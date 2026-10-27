@@ -273,6 +273,9 @@ catalogs:
       specifier: npm:@voidzero-dev/vite-plus-core@1.3.0
       version: 1.3.0
   stack:
+    '@distilled.cloud/aws':
+      specifier: 1.0.0-rc.13
+      version: 1.0.0-rc.13
     '@distilled.cloud/cloudflare':
       specifier: 1.0.0-rc.13
       version: 1.0.0-rc.13
@@ -594,6 +597,9 @@ importers:
 
   tools/mosaic-upload:
     dependencies:
+      '@distilled.cloud/aws':
+        specifier: catalog:stack
+        version: 1.0.0-rc.13(effect@4.0.2)
       '@distilled.cloud/cloudflare':
         specifier: catalog:stack
         version: 1.0.0-rc.13(effect@4.0.2)

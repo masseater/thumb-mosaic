@@ -44,8 +44,10 @@ catalog:
   puppeteer-core: 25.16.0
   "@webgpu/types": 0.1.74
   simple-icons: 16.36.0
+  "@distilled.cloud/aws": catalog:stack
 catalogs:
   stack:
+    "@distilled.cloud/aws": 1.0.0-rc.13
     "@distilled.cloud/cloudflare": 1.0.0-rc.13
     "@effect/atom-react": 4.0.2
     "@effect/tsgo": 0.56.1
