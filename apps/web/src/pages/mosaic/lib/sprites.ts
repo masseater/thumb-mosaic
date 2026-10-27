@@ -1,33 +1,34 @@
 import type { PublishedMosaic } from "@thumb-mosaic/mosaic";
-import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
+import { Array, Effect, MutableHashMap, Option, Record, String, pipe } from "effect";
 
 const TILE_CACHE_SIZE = 384;
-const ORIGIN = 0;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
 const OVERVIEW = 0;
+const HEX_DIGITS = 6;
+const HEX = "#";
 
 type Mosaic = typeof PublishedMosaic.Type;
 type Level = Mosaic["levels"][number];
 
-interface Sprite {
-  readonly image: HTMLImageElement;
-  readonly left: number;
-  readonly top: number;
-  readonly width: number;
-  readonly height: number;
+interface BlockAt {
+  readonly sheet: number;
+  readonly column: number;
+  readonly row: number;
+  readonly request: boolean;
 }
 
-interface Wanted {
-  readonly tile: number;
-  readonly cell: number;
-  readonly devicePixels: number;
+interface Sheets {
+  readonly levels: readonly Level[];
+  readonly block: (at: BlockAt) => Option.Option<HTMLImageElement>;
 }
 
-interface Sprites {
+interface Sprites extends Sheets {
   readonly ready: Effect.Effect<void>;
-  readonly overview: (cell: number) => Option.Option<Sprite>;
-  readonly best: (wanted: Wanted) => Option.Option<Sprite>;
+  readonly mask: HTMLImageElement;
+  readonly colors: readonly string[];
+  readonly levelFor: (devicePixels: number) => number;
+  readonly tile: (index: number) => Option.Option<HTMLImageElement>;
 }
 
 interface Source {
@@ -41,23 +42,15 @@ interface Block {
   readonly url: string;
 }
 
-interface Sheet {
-  readonly level: Level;
-  readonly blocks: Record.ReadonlyRecord<string, Block>;
-}
-
-interface Position {
-  readonly column: number;
-  readonly row: number;
-}
-
-type TileLookup = (index: number) => Option.Option<Sprite>;
-type SheetLookup = (sheet: Sheet, cell: number) => Option.Option<Sprite>;
-
-const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
+const pendingImage = (onLoad: () => void): HTMLImageElement => {
   const image = new Image();
   image.decoding = "async";
-  image.addEventListener("load", onLoad, { once: true });
+  image.addEventListener("load", onLoad);
+  return image;
+};
+
+const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
+  const image = pendingImage(onLoad);
   image.src = url;
   return image;
 };
@@ -65,47 +58,22 @@ const loadImage = (url: string, onLoad: () => void): HTMLImageElement => {
 const isLoaded = (image: HTMLImageElement): boolean =>
   image.complete && image.naturalWidth > NO_WIDTH;
 
-const whenLoaded = (image: HTMLImageElement): Effect.Effect<void> =>
-  Effect.callback((resume) => {
-    if (image.complete) {
-      resume(Effect.void);
-      return;
-    }
-    const settle = (): void => {
-      resume(Effect.void);
-    };
-    image.addEventListener("load", settle, { once: true });
-    image.addEventListener("error", settle, { once: true });
-  });
-
 const whenSettled = (image: HTMLImageElement): Effect.Effect<void> =>
-  Effect.andThen(whenLoaded(image), Effect.ignore(Effect.tryPromise(() => image.decode())));
+  Effect.ignore(Effect.tryPromise(() => image.decode()));
 
-const wholeImage = (image: HTMLImageElement): Sprite => ({
-  image,
-  left: ORIGIN,
-  top: ORIGIN,
-  width: image.naturalWidth,
-  height: image.naturalHeight,
-});
-
-const blockKey = ({ column, row }: Position): string => `${column}_${row}`;
-
-const pendingBlock =
-  ({ fileUrl, onLoad }: Source) =>
-  ([column, row, file]: readonly [number, number, string]): readonly [string, Block] => {
-    const image = new Image();
-    image.decoding = "async";
-    image.addEventListener("load", onLoad);
-    return [blockKey({ column, row }), { image, url: fileUrl(file) }];
-  };
+const blockKey = (column: number, row: number): string => `${column}_${row}`;
 
 const sheetOf =
-  (source: Source) =>
-  (level: Level): Sheet => ({
-    level,
-    blocks: pipe(level.blocks, Array.map(pendingBlock(source)), Record.fromEntries),
-  });
+  ({ fileUrl, onLoad }: Source) =>
+  (level: Level): Record.ReadonlyRecord<string, Block> =>
+    pipe(
+      level.blocks,
+      Array.map(([column, row, file]): readonly [string, Block] => [
+        blockKey(column, row),
+        { image: pendingImage(onLoad), url: fileUrl(file) },
+      ]),
+      Record.fromEntries,
+    );
 
 const requested = ({ image, url }: Block): HTMLImageElement => {
   if (image.getAttribute("src") === null) {
@@ -114,37 +82,24 @@ const requested = ({ image, url }: Block): HTMLImageElement => {
   return image;
 };
 
-const slotIn =
-  (level: Level, image: HTMLImageElement) =>
-  (position: Position): Sprite => ({
-    image,
-    left: (position.column % level.block) * level.tw,
-    top: (position.row % level.block) * level.th,
-    width: level.tw,
-    height: level.th,
-  });
-
-const blockOf = (position: Position, block: number): Position => ({
-  column: Math.floor(position.column / block),
-  row: Math.floor(position.row / block),
-});
-
-const spriteIn =
-  (cols: number): SheetLookup =>
-  (sheet, cell) => {
-    const position = { column: cell % cols, row: Math.floor(cell / cols) };
-    const key = blockKey(blockOf(position, sheet.level.block));
-    return pipe(
-      Record.get(sheet.blocks, key),
-      Option.map(requested),
+const blockLookup =
+  (sheets: readonly Record.ReadonlyRecord<string, Block>[]) =>
+  ({ sheet, column, row, request }: BlockAt): Option.Option<HTMLImageElement> =>
+    pipe(
+      Array.get(sheets, sheet),
+      Option.flatMap((blocks) => Record.get(blocks, blockKey(column, row))),
+      Option.map((block) => {
+        if (request) {
+          return requested(block);
+        }
+        return block.image;
+      }),
       Option.filter(isLoaded),
-      Option.map((image) => slotIn(sheet.level, image)(position)),
     );
-  };
 
-const tileCache = ({ mosaic, fileUrl, onLoad }: Source): TileLookup => {
+const tileCache = ({ mosaic, fileUrl, onLoad }: Source): Sprites["tile"] => {
   const cache = MutableHashMap.empty<number, HTMLImageElement>();
-  const startLoading = (index: number): Option.Option<Sprite> => {
+  const startLoading = (index: number): Option.Option<HTMLImageElement> => {
     if (MutableHashMap.size(cache) >= TILE_CACHE_SIZE) {
       const keys = Array.fromIterable(MutableHashMap.keys(cache));
       pipe(
@@ -158,71 +113,45 @@ const tileCache = ({ mosaic, fileUrl, onLoad }: Source): TileLookup => {
   return (index) =>
     Option.match(MutableHashMap.get(cache, index), {
       onNone: () => startLoading(index),
-      onSome: (image) => pipe(Option.some(image), Option.filter(isLoaded), Option.map(wholeImage)),
+      onSome: (image) => Option.filter(Option.some(image), isLoaded),
     });
 };
 
-const sharpEnough =
-  (devicePixels: number) =>
-  (sheet: Sheet): boolean =>
-    devicePixels <= sheet.level.tw * SHARPER;
-
-const coarser =
-  (sheets: readonly Sheet[], sprite: SheetLookup) =>
-  (below: number, cell: number): Option.Option<Sprite> =>
-    pipe(
-      Array.take(sheets, below),
-      Array.reverse,
-      Array.findFirst((sheet) => sprite(sheet, cell)),
+const levelFinder =
+  (levels: readonly Level[]) =>
+  (devicePixels: number): number =>
+    Option.getOrElse(
+      Array.findFirstIndex(levels, (level) => devicePixels <= level.tw * SHARPER),
+      () => levels.length,
     );
 
-const pickBest = ({
-  sheets,
-  sprite,
-  tile,
-}: Readonly<{
-  sheets: readonly Sheet[];
-  sprite: SheetLookup;
-  tile: TileLookup;
-}>): Sprites["best"] => {
-  const fallback = coarser(sheets, sprite);
-  return ({ tile: index, cell, devicePixels }) =>
-    Option.match(Array.findFirstIndex(sheets, sharpEnough(devicePixels)), {
-      onNone: () => Option.orElse(tile(index), () => fallback(sheets.length, cell)),
-      onSome: (wanted) =>
-        pipe(
-          Array.get(sheets, wanted),
-          Option.flatMap((sheet) => sprite(sheet, cell)),
-          Option.orElse(() => fallback(wanted, cell)),
-        ),
-    });
-};
-
-const overviewBlocks = (sheets: readonly Sheet[]): readonly HTMLImageElement[] =>
-  pipe(
-    Array.get(sheets, OVERVIEW),
-    Option.match({
-      onNone: (): readonly HTMLImageElement[] => [],
-      onSome: (sheet) => pipe(Record.values(sheet.blocks), Array.map(requested)),
-    }),
+const colorsOf = (hex: string): readonly string[] =>
+  Array.makeBy(
+    Math.floor(hex.length / HEX_DIGITS),
+    (index) => `${HEX}${String.slice(index * HEX_DIGITS, index * HEX_DIGITS + HEX_DIGITS)(hex)}`,
   );
 
 const createSprites = (source: Source): Sprites => {
   const sheets = pipe(source.mosaic.levels, Array.map(sheetOf(source)));
-  const sprite = spriteIn(source.mosaic.cols);
+  const mask = loadImage(source.fileUrl(source.mosaic.mask), source.onLoad);
+  const overview = pipe(
+    Array.get(sheets, OVERVIEW),
+    Option.map((blocks) => pipe(Record.values(blocks), Array.map(requested))),
+    Option.getOrElse((): readonly HTMLImageElement[] => []),
+  );
   return {
-    ready: Effect.forEach(overviewBlocks(sheets), (image) => whenSettled(image), {
+    levels: source.mosaic.levels,
+    block: blockLookup(sheets),
+    ready: Effect.forEach([mask, ...overview], whenSettled, {
       concurrency: "unbounded",
       discard: true,
     }),
-    overview: (cell) =>
-      pipe(
-        Array.get(sheets, OVERVIEW),
-        Option.flatMap((sheet) => sprite(sheet, cell)),
-      ),
-    best: pickBest({ sheets, sprite, tile: tileCache(source) }),
+    mask,
+    colors: colorsOf(source.mosaic.colors),
+    levelFor: levelFinder(source.mosaic.levels),
+    tile: tileCache(source),
   };
 };
 
-export type { Mosaic, Sprite, Sprites };
+export type { Level, Mosaic, Sprites };
 export { createSprites };

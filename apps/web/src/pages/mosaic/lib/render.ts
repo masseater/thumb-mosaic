@@ -1,22 +1,24 @@
 import { Array, Option } from "effect";
 
-import type { Point } from "./camera";
 import { CELL_HEIGHT, CELL_WIDTH } from "./camera";
-import { LANDED, poseAt } from "./intro";
-import type { Flight, Pose } from "./intro";
+import { LANDED } from "./intro";
+import { drawIntro } from "./render-intro";
 import type { Scene } from "./scene";
-import type { Sprite, Sprites } from "./sprites";
+import type { Level, Sprites } from "./sprites";
 
-const LARGE = 1;
-const HALF = 0.5;
+const ONE = 1;
 const ORIGIN = 0;
 const IDENTITY = 1;
 const NO_SKEW = 0;
 const EMPTY = -1;
+const HIDDEN = 0;
+const FADE_MS = 600;
 const HOVER_MIN_TILE_PIXELS = 10;
 const HOVER_WIDTH = 2;
 const SELECTION_WIDTH = 3;
 const HOVER_COLOR = "rgba(255, 255, 255, 0.95)";
+const DRAW = "source-over";
+const CLIP = "destination-in";
 
 interface Frame {
   readonly context: CanvasRenderingContext2D;
@@ -33,33 +35,38 @@ interface Rect {
   readonly height: number;
 }
 
-const blit = (context: CanvasRenderingContext2D, sprite: Sprite, rect: Rect): void => {
-  context.drawImage(
-    sprite.image,
-    sprite.left,
-    sprite.top,
-    sprite.width,
-    sprite.height,
-    rect.left,
-    rect.top,
-    rect.width,
-    rect.height,
-  );
-};
+interface Span {
+  readonly col: number;
+  readonly row: number;
+  readonly cols: number;
+  readonly rows: number;
+}
 
-const spriteFor = ({ sprites, scene }: Frame, tile: number, cell: number): Option.Option<Sprite> =>
-  sprites.best({ tile, cell, devicePixels: CELL_WIDTH * scene.camera.scale * scene.ratio });
+interface Range {
+  readonly firstCol: number;
+  readonly lastCol: number;
+  readonly firstRow: number;
+  readonly lastRow: number;
+}
 
-const cellRect = (scene: Scene, cell: number): Rect => {
-  const { camera, ratio, grid } = scene;
-  const col = cell % grid.cols;
-  const row = Math.floor(cell / grid.cols);
-  const left = Math.round((camera.left + col * CELL_WIDTH * camera.scale) * ratio);
-  const top = Math.round((camera.top + row * CELL_HEIGHT * camera.scale) * ratio);
-  const right = Math.round((camera.left + (col + LARGE) * CELL_WIDTH * camera.scale) * ratio);
-  const bottom = Math.round((camera.top + (row + LARGE) * CELL_HEIGHT * camera.scale) * ratio);
+const spanRect = (scene: Scene, span: Span): Rect => {
+  const { camera, ratio } = scene;
+  const width = CELL_WIDTH * camera.scale;
+  const height = CELL_HEIGHT * camera.scale;
+  const left = Math.round((camera.left + span.col * width) * ratio);
+  const top = Math.round((camera.top + span.row * height) * ratio);
+  const right = Math.round((camera.left + (span.col + span.cols) * width) * ratio);
+  const bottom = Math.round((camera.top + (span.row + span.rows) * height) * ratio);
   return { left, top, width: right - left, height: bottom - top };
 };
+
+const cellRect = (scene: Scene, cell: number): Rect =>
+  spanRect(scene, {
+    col: cell % scene.grid.cols,
+    row: Math.floor(cell / scene.grid.cols),
+    cols: ONE,
+    rows: ONE,
+  });
 
 const visibleRange = (
   offset: number,
@@ -67,22 +74,10 @@ const visibleRange = (
   extent: Readonly<{ view: number; count: number }>,
 ): readonly [number, number] => [
   Math.max(ORIGIN, Math.floor(-offset / size)),
-  Math.min(extent.count - LARGE, Math.floor((extent.view - offset) / size)),
+  Math.min(extent.count - ONE, Math.floor((extent.view - offset) / size)),
 ];
 
-const drawCell = (frame: Frame, cell: number): void => {
-  const tile = frame.scene.tileOfCell[cell] ?? EMPTY;
-  if (tile === EMPTY) {
-    return;
-  }
-  const sprite = spriteFor(frame, tile, cell);
-  if (Option.isSome(sprite)) {
-    blit(frame.context, sprite.value, cellRect(frame.scene, cell));
-  }
-};
-
-const drawGrid = (frame: Frame): void => {
-  const { scene } = frame;
+const visible = (scene: Scene): Range => {
   const { camera, grid, viewport } = scene;
   const [firstCol, lastCol] = visibleRange(camera.left, CELL_WIDTH * camera.scale, {
     view: viewport.width,
@@ -92,11 +87,130 @@ const drawGrid = (frame: Frame): void => {
     view: viewport.height,
     count: grid.rows,
   });
-  for (let row = firstRow; row <= lastRow; row += LARGE) {
-    for (let col = firstCol; col <= lastCol; col += LARGE) {
-      drawCell(frame, row * grid.cols + col);
+  return { firstCol, lastCol, firstRow, lastRow };
+};
+
+const paint = (context: CanvasRenderingContext2D, image: HTMLImageElement, rect: Rect): void => {
+  context.drawImage(image, rect.left, rect.top, rect.width, rect.height);
+};
+
+type CellDraw = (cell: number, tile: number) => void;
+
+const drawRow = (
+  scene: Scene,
+  { row, range }: Readonly<{ row: number; range: Range }>,
+  draw: CellDraw,
+): void => {
+  for (let col = range.firstCol; col <= range.lastCol; col += ONE) {
+    const cell = row * scene.grid.cols + col;
+    const tile = scene.tileOfCell[cell] ?? EMPTY;
+    if (tile !== EMPTY) {
+      draw(cell, tile);
     }
   }
+};
+
+const forEachCell = (frame: Frame, draw: CellDraw): void => {
+  const range = visible(frame.scene);
+  for (let row = range.firstRow; row <= range.lastRow; row += ONE) {
+    drawRow(frame.scene, { row, range }, draw);
+  }
+};
+
+const drawBlock = (
+  frame: Frame,
+  { sheet, level, request }: Readonly<{ sheet: number; level: Level; request: boolean }>,
+  [col, row]: readonly [number, number],
+): void => {
+  const image = frame.sprites.block({ sheet, column: col, row, request });
+  if (Option.isSome(image)) {
+    paint(
+      frame.context,
+      image.value,
+      spanRect(frame.scene, {
+        col: col * level.block,
+        row: row * level.block,
+        cols: image.value.naturalWidth / level.tw,
+        rows: image.value.naturalHeight / level.th,
+      }),
+    );
+  }
+};
+
+const drawSheet = (frame: Frame, sheet: number, request: boolean): void => {
+  const found = Array.get(frame.sprites.levels, sheet);
+  if (Option.isNone(found)) {
+    return;
+  }
+  const level = found.value;
+  const range = visible(frame.scene);
+  for (
+    let row = Math.floor(range.firstRow / level.block);
+    row * level.block <= range.lastRow;
+    row += ONE
+  ) {
+    for (
+      let col = Math.floor(range.firstCol / level.block);
+      col * level.block <= range.lastCol;
+      col += ONE
+    ) {
+      drawBlock(frame, { sheet, level, request }, [col, row]);
+    }
+  }
+};
+
+const drawImages = (frame: Frame): void => {
+  const { scene, sprites, context } = frame;
+  const wanted = sprites.levelFor(CELL_WIDTH * scene.camera.scale * scene.ratio);
+  for (const sheet of sprites.levels.keys()) {
+    if (sheet <= wanted) {
+      drawSheet(frame, sheet, sheet === wanted);
+    }
+  }
+  if (wanted >= sprites.levels.length) {
+    forEachCell(frame, (cell, tile) => {
+      const image = sprites.tile(tile);
+      if (Option.isSome(image)) {
+        paint(context, image.value, cellRect(scene, cell));
+      }
+    });
+  }
+};
+
+const drawColors = (frame: Frame): void => {
+  const { context, scene, sprites } = frame;
+  forEachCell(frame, (cell, tile) => {
+    const rect = cellRect(scene, cell);
+    context.fillStyle = sprites.colors[tile] ?? HOVER_COLOR;
+    context.fillRect(rect.left, rect.top, rect.width, rect.height);
+  });
+};
+
+const clipToShape = (frame: Frame): void => {
+  const { context, scene, sprites } = frame;
+  context.globalCompositeOperation = CLIP;
+  paint(
+    context,
+    sprites.mask,
+    spanRect(scene, { col: ORIGIN, row: ORIGIN, cols: scene.grid.cols, rows: scene.grid.rows }),
+  );
+  context.globalCompositeOperation = DRAW;
+};
+
+const revealed = (frame: Frame): number =>
+  Math.min(LANDED, Math.max(HIDDEN, (frame.now - frame.scene.reveal) / FADE_MS));
+
+const drawMosaic = (frame: Frame): void => {
+  const amount = revealed(frame);
+  if (amount < LANDED) {
+    drawColors(frame);
+  }
+  if (amount > HIDDEN) {
+    frame.context.globalAlpha = amount;
+    drawImages(frame);
+    frame.context.globalAlpha = LANDED;
+  }
+  clipToShape(frame);
 };
 
 const outline = (
@@ -115,60 +229,10 @@ const outline = (
   context.strokeRect(rect.left, rect.top, rect.width, rect.height);
 };
 
-const flightCenter = (scene: Scene, cell: number): Point => {
-  const { camera, grid } = scene;
-  return {
-    left: camera.left + ((cell % grid.cols) + HALF) * CELL_WIDTH * camera.scale,
-    top: camera.top + (Math.floor(cell / grid.cols) + HALF) * CELL_HEIGHT * camera.scale,
-  };
-};
-
-const placeFlight = (frame: Frame, pose: Pose, center: Point): void => {
-  const { context, scene } = frame;
-  const cos = Math.cos(pose.rotation) * scene.ratio;
-  const sin = Math.sin(pose.rotation) * scene.ratio;
-  context.setTransform(
-    cos,
-    sin,
-    -sin,
-    cos,
-    (center.left + pose.shiftX) * scene.ratio,
-    (center.top + pose.shiftY) * scene.ratio,
-  );
-  context.globalAlpha = pose.alpha;
-};
-
-const drawFlight = (
-  frame: Frame,
-  { flight, tile }: Readonly<{ flight: Flight; tile: number }>,
-  elapsed: number,
-): void => {
-  const { scene } = frame;
-  const pose = poseAt({ flight, elapsed });
-  const cell = scene.cells[tile] ?? ORIGIN;
-  placeFlight(frame, pose, flightCenter(scene, cell));
-  const width = CELL_WIDTH * scene.camera.scale * pose.scale;
-  const height = CELL_HEIGHT * scene.camera.scale * pose.scale;
-  const sprite = frame.sprites.overview(cell);
-  if (Option.isSome(sprite)) {
-    blit(frame.context, sprite.value, { left: -width * HALF, top: -height * HALF, width, height });
-  }
-};
-
-const resetTransform = (context: CanvasRenderingContext2D): void => {
+const clear = (context: CanvasRenderingContext2D): void => {
   context.setTransform(IDENTITY, NO_SKEW, NO_SKEW, IDENTITY, ORIGIN, ORIGIN);
   context.globalAlpha = LANDED;
-};
-
-const drawIntro = (frame: Frame, flights: readonly Flight[], elapsed: number): void => {
-  for (const [tile, flight] of flights.entries()) {
-    drawFlight(frame, { flight, tile }, elapsed);
-  }
-  resetTransform(frame.context);
-};
-
-const clear = (context: CanvasRenderingContext2D): void => {
-  resetTransform(context);
+  context.globalCompositeOperation = DRAW;
   context.clearRect(ORIGIN, ORIGIN, context.canvas.width, context.canvas.height);
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
@@ -188,12 +252,17 @@ const drawScene = (frame: Frame): void => {
   const { context, scene } = frame;
   clear(context);
   if (scene.motion.status === "intro") {
-    drawIntro(frame, scene.motion.flights, frame.now - scene.motion.start);
+    drawIntro({ frame, flights: scene.motion.flights, elapsed: frame.now - scene.motion.start });
     return;
   }
-  drawGrid(frame);
+  drawMosaic(frame);
   drawHighlights(frame);
 };
 
+const isFading =
+  (now: number) =>
+  (scene: Scene): boolean =>
+    Number.isFinite(scene.reveal) && now < scene.reveal + FADE_MS;
+
 export type { Frame };
-export { drawScene };
+export { drawScene, isFading };

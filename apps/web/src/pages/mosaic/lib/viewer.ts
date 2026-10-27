@@ -1,4 +1,4 @@
-import { Array, Effect, Option, Record, pipe } from "effect";
+import { Effect, Option, Record } from "effect";
 
 import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 
@@ -6,9 +6,19 @@ import type { Point, Size } from "./camera";
 import { leave, pointerDown, pointerMove, pointerUp } from "./gesture";
 import { seedFlights } from "./intro";
 import { advance } from "./motion";
-import { drawScene } from "./render";
+import { drawScene, isFading } from "./render";
 import type { Scene } from "./scene";
-import { createScene, flyHome, playIntro, resize, select, settle, zoomAt, zoomInAt } from "./scene";
+import {
+  createScene,
+  flyHome,
+  playIntro,
+  resize,
+  select,
+  settle,
+  showImages,
+  zoomAt,
+  zoomInAt,
+} from "./scene";
 import type { Mosaic, Sprites } from "./sprites";
 import { createSprites } from "./sprites";
 
@@ -70,7 +80,9 @@ const replayIntro = (store: ViewerStore): Effect.Effect<void> =>
       cells: scene.cells,
       view: { viewport: scene.viewport, grid: scene.grid },
     });
-    store.step(playIntro({ flights, now: performance.now() }));
+    store.step(
+      playIntro({ flights, now: performance.now(), imagesReady: Number.isFinite(scene.reveal) }),
+    );
   });
 
 const bindPointer = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSignal): void => {
@@ -185,8 +197,15 @@ const advanceFor =
     return advanced;
   };
 
-const needsDraw = (scene: Scene, drawn: Option.Option<Scene>, dirty: boolean): boolean =>
-  dirty || !Option.contains(drawn, scene) || scene.motion.status !== "still";
+const needsDraw = (
+  scene: Scene,
+  drawn: Option.Option<Scene>,
+  state: Readonly<{ dirty: boolean; now: number }>,
+): boolean =>
+  state.dirty ||
+  !Option.contains(drawn, scene) ||
+  scene.motion.status !== "still" ||
+  isFading(state.now)(scene);
 
 const startLoop = (
   { canvas, store }: Pick<Mount, "canvas" | "store">,
@@ -206,7 +225,10 @@ const startLoop = (
     }
     store.step(advanceFor(reduced, now));
     const viewer = store.read();
-    if (viewer.status === "ready" && needsDraw(viewer.scene, drawn, sprites.dirty())) {
+    if (
+      viewer.status === "ready" &&
+      needsDraw(viewer.scene, drawn, { dirty: sprites.dirty(), now })
+    ) {
       drawScene({ context, scene: viewer.scene, sprites: sprites.sprites, now, accent });
       drawn = Option.some(viewer.scene);
     }
@@ -241,29 +263,16 @@ const bindAll = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSig
   bindResize(canvas, store, signal);
 };
 
-const revealWhenReady = ({
-  canvas,
-  mosaic,
+const showWhenReady = ({
   store,
   sprites,
   signal,
-}: Readonly<
-  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal }
->): Effect.Effect<void> =>
+}: Readonly<{ store: ViewerStore; sprites: Sprites; signal: AbortSignal }>): Effect.Effect<void> =>
   Effect.gen(function* reveal() {
     yield* sprites.ready;
-    if (signal.aborted) {
-      return;
+    if (!signal.aborted) {
+      store.step(showImages(performance.now()));
     }
-    const cells = pipe(
-      mosaic.tiles,
-      Array.map(([cell]) => cell),
-    );
-    store.write({
-      status: "ready",
-      scene: createScene({ grid: mosaic, cells, ...measure(canvas) }),
-    });
-    yield* replayIntro(store);
   });
 
 const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) => {
@@ -274,10 +283,14 @@ const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) 
     fileUrl: (file) => `${filesBase}/${file}`,
     onLoad: invalidation.mark,
   });
-  store.write({ status: "loading" });
+  store.write({
+    status: "ready",
+    scene: createScene({ grid: mosaic, cells: mosaic.cells, ...measure(canvas) }),
+  });
   bindAll(canvas, store, controller.signal);
   startLoop({ canvas, store }, { sprites, dirty: invalidation.take }, controller.signal);
-  Effect.runFork(revealWhenReady({ canvas, mosaic, store, sprites, signal: controller.signal }));
+  Effect.runFork(replayIntro(store));
+  Effect.runFork(showWhenReady({ store, sprites, signal: controller.signal }));
 
   return () => {
     controller.abort();

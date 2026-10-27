@@ -1,26 +1,22 @@
 import type { ReactNode } from "react";
 
+import { SourceRow } from "./source-row";
+import { VocaDbRow } from "./vocadb-row";
+
 const HEADING = "データの出どころ";
-const SONGS = "曲名・作者・動画の一覧は ";
-const VOCADB_NAME = "VocaDB";
-const SONGS_AFTER = " の API から取得しています。";
-const YOUTUBE = "YouTube のサムネイルは YouTube の画像サーバー（i.ytimg.com）から取得しています。";
-const NICONICO =
-  "ニコニコ動画のサムネイルは、動画ページに載っている画像と、ニコニコのサムネイル画像サーバーから取得しています。";
-const VOCADB = "https://vocadb.net/";
+const YOUTUBE = "YouTube のサムネイル";
+const YOUTUBE_HOST = "i.ytimg.com";
+const NICONICO = "ニコニコのサムネイル";
+const NICONICO_HOSTS = "動画ページの画像、nicovideo.cdn.nimg.jp";
 
 const CreditsSources = (): ReactNode => (
-  <section className="flex flex-col gap-1 text-sm">
+  <section className="flex flex-col gap-2 text-sm">
     <h2 className="font-bold">{HEADING}</h2>
-    <p className="text-muted-foreground">
-      {SONGS}
-      <a href={VOCADB} target="_blank" rel="noreferrer" className="underline">
-        {VOCADB_NAME}
-      </a>
-      {SONGS_AFTER}
-    </p>
-    <p className="text-muted-foreground">{YOUTUBE}</p>
-    <p className="text-muted-foreground">{NICONICO}</p>
+    <dl className="text-muted-foreground flex flex-col gap-1">
+      <VocaDbRow />
+      <SourceRow term={YOUTUBE}>{YOUTUBE_HOST}</SourceRow>
+      <SourceRow term={NICONICO}>{NICONICO_HOSTS}</SourceRow>
+    </dl>
   </section>
 );
 

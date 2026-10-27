@@ -6,10 +6,9 @@ import { CELL_HEIGHT, CELL_WIDTH } from "./camera";
 const RADIUS_OF_DIAGONAL = 0.75;
 const RADIUS_MIN = 0.8;
 const RADIUS_SPREAD = 0.6;
-const ROTATION_SPREAD = 2.4;
-const DELAY_RANDOM_MS = 1500;
-const DELAY_BY_DISTANCE_MS = 500;
-const FLIGHT_MS = 1300;
+const DELAY_RANDOM_MS = 700;
+const DELAY_BY_DISTANCE_MS = 400;
+const FLIGHT_MS = 1000;
 const START_SCALE_EXTRA = 2.5;
 const FADE_IN_SPEED = 3;
 const EASE_POWER = 4;
@@ -17,11 +16,11 @@ const HALF = 0.5;
 const NOT_STARTED = 0;
 const LANDED = 1;
 const TURN = Math.PI + Math.PI;
+const NO_DELAY = 0;
 
 interface Flight {
   readonly startX: number;
   readonly startY: number;
-  readonly rotation: number;
   readonly delay: number;
 }
 
@@ -30,7 +29,6 @@ interface Pose {
   readonly shiftX: number;
   readonly shiftY: number;
   readonly scale: number;
-  readonly rotation: number;
   readonly alpha: number;
 }
 
@@ -58,7 +56,6 @@ const seedFlight = ({
     return {
       startX: Math.cos(angle) * reach,
       startY: Math.sin(angle) * reach,
-      rotation: ((yield* Random.next) - HALF) * ROTATION_SPREAD,
       delay:
         (yield* Random.next) * DELAY_RANDOM_MS +
         distanceFromCenter({ cell, grid }) * DELAY_BY_DISTANCE_MS,
@@ -85,10 +82,17 @@ const poseAt = ({ flight, elapsed }: Readonly<{ flight: Flight; elapsed: number 
     shiftX: flight.startX * remaining,
     shiftY: flight.startY * remaining,
     scale: LANDED + remaining * START_SCALE_EXTRA,
-    rotation: flight.rotation * remaining,
     alpha: Math.min(LANDED, progress * FADE_IN_SPEED),
   };
 };
 
+const introLength = (flights: readonly Flight[]): number => {
+  let longest = NO_DELAY;
+  for (const flight of flights) {
+    longest = Math.max(longest, flight.delay);
+  }
+  return longest + FLIGHT_MS;
+};
+
 export type { Flight, Pose };
-export { FLIGHT_MS, LANDED, poseAt, seedFlights };
+export { LANDED, introLength, poseAt, seedFlights };

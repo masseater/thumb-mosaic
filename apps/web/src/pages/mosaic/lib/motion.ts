@@ -1,8 +1,7 @@
 import { Array, Match } from "effect";
 
 import type { Camera } from "./camera";
-import { FLIGHT_MS as LANDING_MS } from "./intro";
-import type { Flight } from "./intro";
+import { introLength } from "./intro";
 import type { Scene, Step } from "./scene";
 import { STILL, settle } from "./scene";
 
@@ -14,7 +13,6 @@ const EASE_OUT_BASE = -2;
 const EASE_OUT_OFFSET = 2;
 const CUBIC = 3;
 const HALVES = 2;
-const NO_DELAY = 0;
 
 const easeInOut = (progress: number): number => {
   if (progress < HALF) {
@@ -36,14 +34,6 @@ const between = (
   const worldX = lerp((centerX - from.left) / from.scale, (centerX - to.left) / to.scale, amount);
   const worldY = lerp((centerY - from.top) / from.scale, (centerY - to.top) / to.scale, amount);
   return { scale, left: centerX - worldX * scale, top: centerY - worldY * scale };
-};
-
-const introLength = (flights: readonly Flight[]): number => {
-  let longest = NO_DELAY;
-  for (const flight of flights) {
-    longest = Math.max(longest, flight.delay);
-  }
-  return longest + LANDING_MS;
 };
 
 const advance =
