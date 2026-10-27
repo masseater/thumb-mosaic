@@ -1,6 +1,7 @@
 import { Effect, Option, Record } from "effect";
 
 import type { Mosaic } from "#/pages/mosaic/api/queries";
+import type { Visit } from "#/pages/mosaic/lib/files";
 import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 
 import type { Point, Size } from "./camera";
@@ -26,8 +27,7 @@ const HALF = 0.5;
 
 interface Mount {
   readonly canvas: HTMLCanvasElement;
-  readonly mosaic: Mosaic;
-  readonly filesBase: string;
+  readonly visit: Visit;
   readonly store: ViewerStore;
 }
 
@@ -173,7 +173,12 @@ const revealWhenReady = ({
   signal,
   invalidation,
 }: Readonly<
-  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal; invalidation: Invalidation }
+  Omit<Mount, "visit"> & {
+    mosaic: Mosaic;
+    sprites: Sprites;
+    signal: AbortSignal;
+    invalidation: Invalidation;
+  }
 >): Effect.Effect<void> =>
   Effect.gen(function* reveal() {
     const renderer = yield* createRenderer({
@@ -200,14 +205,11 @@ const revealWhenReady = ({
     }
   });
 
-const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) => {
+const mountViewer = ({ canvas, visit, store }: Mount): (() => void) => {
+  const { mosaic } = visit;
   const controller = new AbortController();
   const invalidation = createInvalidation();
-  const sprites = createSprites({
-    mosaic,
-    fileUrl: (file) => `${filesBase}/${file}`,
-    onLoad: invalidation.mark,
-  });
+  const sprites = createSprites({ visit, onLoad: invalidation.mark });
   store.write({ status: "loading" });
   bindAll(canvas, store, controller.signal);
   Effect.runFork(

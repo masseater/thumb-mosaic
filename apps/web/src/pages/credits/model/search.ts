@@ -1,13 +1,11 @@
 import { Option, Schema } from "effect";
 
-const FIRST_VARIANT = 0;
+const DEFAULT_SEED = 0;
 
-const decodeVariant = Schema.decodeUnknownOption(Schema.Int);
+const decodeSeed = Schema.decodeUnknownOption(Schema.Int);
 
-const creditsSearch = (
-  search: Readonly<Record<string, unknown>>,
-): Readonly<{ variant: number }> => ({
-  variant: Option.getOrElse(decodeVariant(search["variant"]), () => FIRST_VARIANT),
+const creditsSearch = (search: Readonly<Record<string, unknown>>): Readonly<{ seed: number }> => ({
+  seed: Option.getOrElse(decodeSeed(search["seed"]), () => DEFAULT_SEED),
 });
 
 export { creditsSearch };

@@ -26,6 +26,7 @@ YOUTUBE_SIZES = ("maxresdefault", "sddefault", "hqdefault", "mqdefault")
 OG_SIZE = (1200, 630)
 OG_TILE = (64, 36)
 OG_FILE = "og.jpg"
+CANDIDATES = "candidates.json"
 OG_IMAGE = re.compile(r'property="og:image" content="([^"]+)"')
 
 
@@ -102,11 +103,22 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
     cache.mkdir(parents=True, exist_ok=True)
     if (public / ch.slug).exists():
         shutil.rmtree(public / ch.slug)
-    for variant in range(ch.variants):
-        _variant(ch, variant_path(data, variant), cache, public / ch.slug / str(variant))
+    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v)) for v in range(ch.variants)]
+    ids: dict[str, int] = {}
+    candidates = [[ids.setdefault(m["urls"][i], len(ids)) for m in variants] for i in range(len(variants[0]["cells"]))]
+    (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
+    first = variants[0]
+    manifest = {k: v for k, v in first.items() if k not in ("urls", "version", "variant", "meanDelta", "og")}
+    manifest |= {
+        "og": f"0/{first['version']}/{first['og']}",
+        "candidates": CANDIDATES,
+        "variants": [{"version": m["version"], "meanDelta": m["meanDelta"]} for m in variants],
+    }
+    (public / f"{ch.slug}.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
+    print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 
-def _variant(ch: Character, data: Path, cache: Path, public: Path) -> None:
+def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
@@ -126,9 +138,8 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path) -> None:
     for start in range(0, len(tiles), CHUNK):
         chunk = json.dumps(tiles[start : start + CHUNK], ensure_ascii=False, separators=(",", ":"))
         (out / CHUNK_DIR / f"{start // CHUNK}.json").write_text(chunk)
-    manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles")}
+    manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles", "pool")}
     manifest |= {
-        "variant": int(public.name),
         "version": version,
         "levels": levels,
         "tile": {"width": TILE[0], "height": TILE[1], "dir": "t"},
@@ -137,9 +148,9 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path) -> None:
         "tiles": "tiles.json",
         "chunk": {"size": CHUNK, "dir": CHUNK_DIR},
     }
-    public.with_suffix(".json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
     widths: dict[int, int] = {}
     for path in paths:
         w = Image.open(path).size[0]
         widths[w] = widths.get(w, 0) + 1
     print(f"site {ch.slug}/{public.name} version={version} tiles={len(paths)} widths={dict(sorted(widths.items()))}", file=sys.stderr)
+    return manifest | {"urls": [t[3] for t in tiles]}

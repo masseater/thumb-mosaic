@@ -1,27 +1,42 @@
 import { createIsomorphicFn } from "@tanstack/react-start";
-import { PublishedMosaic, manifestPath } from "@thumb-mosaic/mosaic";
-import type { VariantRef } from "@thumb-mosaic/mosaic";
+import { Candidates, PublishedMosaic, manifestPath, slugPath } from "@thumb-mosaic/mosaic";
 import { Option, Record, Schema } from "effect";
 
-import type { Mosaic } from "./queries";
+import type { CandidateList, Mosaic } from "./queries";
 
 const PUBLIC = "../../../../public";
 
-const decode = Schema.decodeUnknownOption(PublishedMosaic);
+const decodeMosaic = Schema.decodeUnknownOption(PublishedMosaic);
+const decodeCandidates = Schema.decodeUnknownOption(Candidates);
 
 const bundledMosaic = createIsomorphicFn()
-  .server((ref: VariantRef): Option.Option<Mosaic> =>
+  .server((slug: string): Option.Option<Mosaic> =>
     Option.flatMap(
       Record.get(
-        import.meta.glob<unknown>("../../../../public/files/*/*.json", {
+        import.meta.glob<unknown>("../../../../public/files/*.json", {
           eager: true,
           import: "default",
         }),
-        `${PUBLIC}/${manifestPath(ref)}`,
+        `${PUBLIC}/${manifestPath(slug)}`,
       ),
-      decode,
+      decodeMosaic,
     ),
   )
   .client((): Option.Option<Mosaic> => Option.none());
 
-export { bundledMosaic };
+const bundledCandidates = createIsomorphicFn()
+  .server((slug: string, mosaic: Mosaic): Option.Option<CandidateList> =>
+    Option.flatMap(
+      Record.get(
+        import.meta.glob<unknown>("../../../../public/files/*/candidates.json", {
+          eager: true,
+          import: "default",
+        }),
+        `${PUBLIC}/${slugPath(slug)}/${mosaic.candidates}`,
+      ),
+      decodeCandidates,
+    ),
+  )
+  .client((): Option.Option<CandidateList> => Option.none());
+
+export { bundledCandidates, bundledMosaic };
