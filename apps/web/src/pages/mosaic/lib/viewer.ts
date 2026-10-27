@@ -241,6 +241,31 @@ const bindAll = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSig
   bindResize(canvas, store, signal);
 };
 
+const revealWhenReady = ({
+  canvas,
+  mosaic,
+  store,
+  sprites,
+  signal,
+}: Readonly<
+  Omit<Mount, "filesBase"> & { sprites: Sprites; signal: AbortSignal }
+>): Effect.Effect<void> =>
+  Effect.gen(function* reveal() {
+    yield* sprites.ready;
+    if (signal.aborted) {
+      return;
+    }
+    const cells = pipe(
+      mosaic.tiles,
+      Array.map(([cell]) => cell),
+    );
+    store.write({
+      status: "ready",
+      scene: createScene({ grid: mosaic, cells, ...measure(canvas) }),
+    });
+    yield* replayIntro(store);
+  });
+
 const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) => {
   const controller = new AbortController();
   const invalidation = createInvalidation();
@@ -249,14 +274,11 @@ const mountViewer = ({ canvas, mosaic, filesBase, store }: Mount): (() => void) 
     fileUrl: (file) => `${filesBase}/${file}`,
     onLoad: invalidation.mark,
   });
-  const cells = pipe(
-    mosaic.tiles,
-    Array.map(([cell]) => cell),
-  );
-  store.write({ status: "ready", scene: createScene({ grid: mosaic, cells, ...measure(canvas) }) });
+  store.write({ status: "loading" });
   bindAll(canvas, store, controller.signal);
   startLoop({ canvas, store }, { sprites, dirty: invalidation.take }, controller.signal);
-  Effect.runFork(Effect.andThen(sprites.ready, replayIntro(store)));
+  Effect.runFork(revealWhenReady({ canvas, mosaic, store, sprites, signal: controller.signal }));
+
   return () => {
     controller.abort();
   };
