@@ -6,3 +6,4 @@ export {
   contentSecurityPolicy,
 } from "./security-headers";
 export { SITE_ORIGIN } from "./site";
+export { THUMBNAIL_RIGHTS } from "./credit";

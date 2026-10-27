@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { filesBase } from "#/pages/mosaic/lib/files";
-import type { Mosaic } from "#/pages/mosaic/lib/sprites";
 import { useViewerStatus } from "#/pages/mosaic/model/viewer";
 
 import { MosaicCanvas } from "./mosaic-canvas";

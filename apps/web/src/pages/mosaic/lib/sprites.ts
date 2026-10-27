@@ -1,12 +1,12 @@
-import type { PublishedMosaic } from "@thumb-mosaic/mosaic";
 import { Array, Effect, MutableHashMap, Option, Record, pipe } from "effect";
+
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 
 const TILE_CACHE_SIZE = 384;
 const NO_WIDTH = 0;
 const SHARPER = 1.2;
 const OVERVIEW = 0;
 
-type Mosaic = typeof PublishedMosaic.Type;
 type Level = Mosaic["levels"][number];
 
 interface BlockAt {
@@ -140,5 +140,5 @@ const createSprites = (source: Source): Sprites => {
   };
 };
 
-export type { Level, Mosaic, Sprites };
+export type { Level, Sprites };
 export { createSprites };

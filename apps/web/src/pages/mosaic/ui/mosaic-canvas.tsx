@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 
-import type { Mosaic } from "#/pages/mosaic/lib/sprites";
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { mountViewer } from "#/pages/mosaic/lib/viewer";
 import { useViewerStore } from "#/pages/mosaic/model/viewer";
 
