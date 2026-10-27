@@ -18,7 +18,7 @@ catalog:
   "@tanstack/eslint-plugin-start": 0.1.0
   "@typescript-eslint/parser": 8.72.0
   "@types/node": 26.6.5
-  eslint: 10.12.0
+  eslint: 10.13.0
   eslint-plugin-drizzle: 0.2.3
   eslint-plugin-react-hooks: 7.1.1
   oxlint-plugin-eslint: 1.88.0
@@ -54,7 +54,7 @@ catalogs:
     alchemy: 2.0.0-beta.81
     effect: 4.0.2
     elysia: 1.4.30
-    fallow: 3.34.0
+    fallow: 3.35.0
     radix-ui: 1.7.0
     renovate: 44.148.3
     steiger: 0.7.0
