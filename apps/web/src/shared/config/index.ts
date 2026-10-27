@@ -5,3 +5,4 @@ export {
   SECURITY_HEADERS,
   contentSecurityPolicy,
 } from "./security-headers";
+export { SITE_ORIGIN } from "./site";

@@ -8,8 +8,7 @@ const MAX_DRAWS = 1024;
 const FRAME_BYTES = 64;
 const FRAME_BINDING = 0;
 const SAMPLER_BINDING = 1;
-const MASK_BINDING = 2;
-const CELLS_BINDING = 3;
+const CELLS_BINDING = 2;
 const DRAW_BINDING = 0;
 const SOURCE_BINDING = 1;
 const START = 0;
@@ -39,11 +38,6 @@ const frameLayoutOf = (device: GPUDevice): GPUBindGroupLayout =>
         binding: SAMPLER_BINDING,
         visibility: GPUShaderStage.FRAGMENT,
         sampler: { type: "filtering" },
-      },
-      {
-        binding: MASK_BINDING,
-        visibility: GPUShaderStage.FRAGMENT,
-        texture: { sampleType: "float" },
       },
       {
         binding: CELLS_BINDING,
@@ -140,12 +134,10 @@ const cellsBuffer = ({
 const frameGroup = ({
   device,
   pipelines,
-  mask,
   cells,
 }: Readonly<{
   device: GPUDevice;
   pipelines: Pipelines;
-  mask: GPUTexture;
   cells: GPUBuffer;
 }>): GPUBindGroup =>
   device.createBindGroup({
@@ -153,7 +145,6 @@ const frameGroup = ({
     entries: [
       { binding: FRAME_BINDING, resource: { buffer: pipelines.frameBuffer } },
       { binding: SAMPLER_BINDING, resource: pipelines.sampler },
-      { binding: MASK_BINDING, resource: mask.createView() },
       { binding: CELLS_BINDING, resource: { buffer: cells } },
     ],
   });

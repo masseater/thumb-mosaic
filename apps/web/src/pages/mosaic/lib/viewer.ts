@@ -4,9 +4,9 @@ import type { ViewerStore } from "#/pages/mosaic/model/viewer";
 
 import type { Point, Size } from "./camera";
 import { leave, pointerDown, pointerMove, pointerUp } from "./gesture";
-import { advance } from "./motion";
+import { createInvalidation, startLoop } from "./loop";
+import type { Invalidation } from "./loop";
 import { createRenderer } from "./renderer";
-import type { Renderer } from "./renderer-contract";
 import type { Scene } from "./scene";
 import { createScene, flyHome, resize, select, settle, zoomAt, zoomInAt } from "./scene";
 import type { Mosaic, Sprites } from "./sprites";
@@ -22,7 +22,6 @@ const KEY_ZOOM_OUT = UNIT / KEY_ZOOM;
 const KEY_PAN = 80;
 const NO_PAN = 0;
 const HALF = 0.5;
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 interface Mount {
   readonly canvas: HTMLCanvasElement;
@@ -55,8 +54,6 @@ const pointOf = (event: MouseEvent): Point => ({
   left: event.offsetX,
   top: event.offsetY,
 });
-
-const prefersReducedMotion = (): boolean => globalThis.matchMedia(REDUCED_MOTION).matches;
 
 const bindPointer = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSignal): void => {
   const options = { signal };
@@ -160,70 +157,6 @@ const bindResize = (canvas: HTMLCanvasElement, store: ViewerStore, signal: Abort
   );
 };
 
-const advanceFor =
-  (reduced: boolean, now: number) =>
-  (scene: Scene): Scene => {
-    const advanced = advance(now)(scene);
-    if (reduced && advanced.motion.status === "flying") {
-      return settle(advanced.motion.to)(advanced);
-    }
-    return advanced;
-  };
-
-const needsDraw = (
-  scene: Scene,
-  drawn: Option.Option<Scene>,
-  state: Readonly<{ dirty: boolean; now: number; renderer: Renderer }>,
-): boolean =>
-  state.dirty ||
-  !Option.contains(drawn, scene) ||
-  scene.motion.status !== "still" ||
-  state.renderer.animating(state.now)(scene);
-
-const startLoop = (
-  { store, renderer }: Readonly<{ store: ViewerStore; renderer: Renderer }>,
-  sprites: Readonly<{ sprites: Sprites; dirty: () => boolean }>,
-  signal: AbortSignal,
-): void => {
-  const reduced = prefersReducedMotion();
-  let drawn: Option.Option<Scene> = Option.none();
-  const frame = (now: number): void => {
-    if (signal.aborted) {
-      return;
-    }
-    store.step(advanceFor(reduced, now));
-    const viewer = store.read();
-    if (
-      viewer.status === "ready" &&
-      needsDraw(viewer.scene, drawn, { dirty: sprites.dirty(), now, renderer })
-    ) {
-      renderer.draw({ scene: viewer.scene, sprites: sprites.sprites, now });
-      drawn = Option.some(viewer.scene);
-    }
-    requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
-};
-
-interface Invalidation {
-  readonly mark: () => void;
-  readonly take: () => boolean;
-}
-
-const createInvalidation = (): Invalidation => {
-  let dirty = true;
-  return {
-    mark: () => {
-      dirty = true;
-    },
-    take: () => {
-      const was = dirty;
-      dirty = false;
-      return was;
-    },
-  };
-};
-
 const bindAll = (canvas: HTMLCanvasElement, store: ViewerStore, signal: AbortSignal): void => {
   bindPointer(canvas, store, signal);
   bindWheel(canvas, store, signal);
@@ -250,7 +183,7 @@ const revealWhenReady = ({
     if (Option.isNone(renderer)) {
       return;
     }
-    startLoop({ store, renderer: renderer.value }, { sprites, dirty: invalidation.take }, signal);
+    startLoop({ store, renderer: renderer.value, sprites, dirty: invalidation.take, signal });
     yield* sprites.ready;
     yield* renderer.value.prepare(sprites);
     if (!signal.aborted) {

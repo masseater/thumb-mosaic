@@ -31,7 +31,6 @@ type Usage = readonly [HTMLImageElement, number];
 
 interface Textures {
   readonly get: (image: HTMLImageElement, frame: number) => Option.Option<Uploaded>;
-  readonly upload: (image: HTMLImageElement) => Effect.Effect<GPUTexture>;
   readonly ensure: (image: HTMLImageElement) => Effect.Effect<void>;
   readonly sweep: (frame: number) => void;
 }
@@ -181,7 +180,6 @@ const createTextures = (context: Context): Textures => {
   const slots = createSlots();
   return {
     get: lookup(context, slots),
-    upload: uploadImage(context.device),
     ensure: register(context, slots),
     sweep: (frame) => {
       if (slots.size() > TEXTURE_LIMIT) {

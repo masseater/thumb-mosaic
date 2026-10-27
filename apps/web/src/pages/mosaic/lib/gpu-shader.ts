@@ -15,16 +15,14 @@ struct Draw {
 
 struct Out {
   @builtin(position) position: vec4f,
-  @location(0) grid: vec2f,
-  @location(1) uv: vec2f,
-  @location(2) local: vec2f,
-  @location(3) alpha: f32,
+  @location(0) uv: vec2f,
+  @location(1) local: vec2f,
+  @location(2) alpha: f32,
 };
 
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var linear_sampler: sampler;
-@group(0) @binding(2) var mask: texture_2d<f32>;
-@group(0) @binding(3) var<storage, read> cells: array<u32>;
+@group(0) @binding(2) var<storage, read> cells: array<u32>;
 @group(1) @binding(0) var<uniform> draw: Draw;
 @group(1) @binding(1) var source: texture_2d<f32>;
 
@@ -65,7 +63,6 @@ fn vs_quad(@builtin(vertex_index) index: u32) -> Out {
   let grid = draw.span.xy + corner * draw.span.zw;
   var result: Out;
   result.position = to_clip(grid_to_pixel(grid));
-  result.grid = grid;
   result.uv = corner;
   result.local = corner * draw.span.zw * cell_pixels();
   result.alpha = draw.params.z;
@@ -88,7 +85,6 @@ fn vs_intro(@builtin(vertex_index) index: u32, @builtin(instance_index) tile: u3
   let center = grid_to_pixel(cell + 0.5) + vec2f(cos(angle), sin(angle)) * reach * remaining;
   var result: Out;
   result.position = to_clip(center + (corner - 0.5) * cell_pixels() * (1.0 + remaining * 2.5));
-  result.grid = cell + corner;
   result.uv = (cell + corner - draw.span.xy) / draw.span.zw;
   result.local = vec2f(0.0);
   result.alpha = min(1.0, progress * 3.0);
@@ -97,8 +93,7 @@ fn vs_intro(@builtin(vertex_index) index: u32, @builtin(instance_index) tile: u3
 
 @fragment
 fn fs_image(input: Out) -> @location(0) vec4f {
-  let coverage = textureSample(mask, linear_sampler, input.grid / frame.grid.xy).a;
-  return textureSample(source, linear_sampler, input.uv) * coverage * input.alpha;
+  return textureSample(source, linear_sampler, input.uv) * input.alpha;
 }
 
 @fragment
