@@ -1,14 +1,17 @@
-import { Stack, makeRandom } from "alchemy";
-import { D1, Website, Workers, providers, state } from "alchemy/Cloudflare";
+import { MOSAIC_BUCKET } from "@thumb-mosaic/mosaic";
+import { Stack } from "alchemy";
+import { R2, Website, Workers, providers, state } from "alchemy/Cloudflare";
 import type { InferEnv } from "alchemy/Cloudflare";
 import { Array as Arr, Config, Effect, Option, Record as Rec, Schema, pipe } from "effect";
 
 import { APP_NAME, CI_TELEMETRY_AUDIENCE, requireAppPrefix } from "./app-name.ts";
+import { BASE_PATH } from "./base-path.ts";
 import { edgeGuard } from "./edge-guard.ts";
 import { logArchive } from "./log-archive.ts";
-import { ASSET_CACHE_CONTROL, SECURITY_HEADERS } from "./src/shared/config/index.ts";
+import { ASSET_CACHE_CONTROL, SECURITY_HEADERS } from "./src/shared/config/security-headers.ts";
 
 const TRACE_SAMPLING_RATE = 0.1;
+const ZONE = "masseater.dev";
 
 const COMPATIBILITY = { date: "2026-08-25" } as const;
 
@@ -29,12 +32,12 @@ const ASSET_HEADERS = pipe(
 const OWNED_ZONE = Option.none<string>();
 
 const web = Effect.gen(function* web() {
-  const DB = yield* D1.Database("DB", { migrations: "./drizzle" });
-  const BETTER_AUTH_SECRET = yield* makeRandom("BetterAuthSecret");
+  const MOSAICS = yield* R2.Bucket("Mosaics", { name: MOSAIC_BUCKET });
   return yield* Website.Vite("Web", {
     compatibility: COMPATIBILITY,
     logpush: true,
-    env: { BETTER_AUTH_SECRET, DB },
+    routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
+    env: { MOSAICS },
     observability: {
       enabled: true,
       logs: {

@@ -21,7 +21,10 @@ const responseHeaders = createMiddleware().server(({ next }) =>
         secured.headers.set(name, value);
       }
       secured.headers.set("Content-Security-Policy", contentSecurityPolicy(nonce));
-      secured.headers.set("Cache-Control", DOCUMENT_CACHE_CONTROL);
+      secured.headers.set(
+        "Cache-Control",
+        secured.headers.get("Cache-Control") ?? DOCUMENT_CACHE_CONTROL,
+      );
       if (Option.isNone(SEARCH_INDEX_ORIGIN)) {
         secured.headers.set("X-Robots-Tag", "noindex");
       }

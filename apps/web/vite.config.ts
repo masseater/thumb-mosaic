@@ -6,9 +6,11 @@ import rsc from "@vitejs/plugin-rsc";
 import { Option } from "effect";
 import { defineConfig } from "vite-plus";
 
-import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/index.ts";
+import { BASE_PATH } from "./base-path.ts";
+import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/search.ts";
 
 export default defineConfig({
+  base: `${BASE_PATH}/`,
   resolve: { tsconfigPaths: true },
   test: {
     projects: [

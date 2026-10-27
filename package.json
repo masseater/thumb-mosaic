@@ -61,7 +61,6 @@
     "skills": [
       "@tanstack/devtools-vite",
       "@tanstack/react-start",
-      "drizzle-kit",
       "@tanstack/devtools",
       "@tanstack/devtools-event-client",
       "@tanstack/match-sorter-utils",

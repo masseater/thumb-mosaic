@@ -1,71 +1,33 @@
-# typescript-template
+# thumb-mosaic
 
-Cloudflare で動く TypeScript の Web アプリを、検査・CI・デプロイ・AI エージェントとの作業の決まりが
-そろった状態から始めるための GitHub テンプレートである。
-新しいリポジトリを作るたびに、lint や CI やデプロイの仕組みを組み直さずに済む。
+キャラクターの公式イラストを、そのキャラクターを使った動画のサムネイルだけで組んだモザイクアートにして公開する。
+サムネイルは 1 枚につき 1 回しか使わず、元の絵を薄く重ねたり、タイルの色を元の絵に寄せたりもしない。
+離れて見ると普通の絵に見え、ズームすると一枚一枚が実在の動画のサムネイルだと分かる。
+タイルを押すと、その動画の曲名と作者が出て、動画へ飛べる。
 
 ## 公開先
 
-- テンプレートのままのアプリ: <https://typescript-template-web-production-ntesuocc46gilfjl.masseater.workers.dev>
+- 初音ミク: <https://masseater.dev/mosaic/miku>
 
-## 始めたときに入っているもの
+## 作り方
 
-- TanStack Start と Effect で書く Web アプリ。D1 のデータベースと better-auth のログインを使える
-- 型検査・lint・テスト・依存の監査を 1 回で流す `vp run verify`
-- main に push すると、verify が通ったあとに Cloudflare へデプロイする GitHub Actions
-- Claude Code で作業するときのフックと作業の決まり
-
-## 使い方
-
-### 前提
-
-- [Vite+](https://viteplus.dev/guide/) の `vp` コマンド
-- `gh`、uv、Go、Python 3、jq。verify の一部がこれらで動く
-- Workers Paid プランの Cloudflare アカウント
-- OpenRouter の API キー。verify の lint の一部が使う
-
-### 1. テンプレートからリポジトリを作る
+動画とサムネイルは [VocaDB](https://vocadb.net/) の楽曲一覧から集め、ニコニコ動画と YouTube のサムネイルを使う。
+元の絵を 80 列のマスに分け、マスとサムネイルの色の違いの合計がもっとも小さくなるよう、全体を一度に割り当てる。
+色は OKLab の色空間で、各マスを 4×3 の小区画に分けて比べる。
+ほぼ同じサムネイルは、知覚ハッシュで 1 枚にまとめてから割り当てる。
 
 ```sh
-gh repo create <owner>/<name> --template masseater/typescript-template \
-  --private --clone
-cd <name>
+cd tools/mosaic
+uv run mosaic all miku       # 収集・割り当て・画像の書き出し
+cd ../mosaic-upload
+vp run upload -- miku ../mosaic/out/miku/site  # R2 へ
 ```
 
-### 2. アプリ名を変える
+キャラクターは `libs/mosaic/src/characters.json` に足す。
 
-`apps/web/app-name.ts` の `APP_NAME` を、リポジトリの名前に変える。
-同じ Cloudflare アカウントにある別のリポジトリと名前が重なると、互いのリソースを置き換え合う。
+## 画像の権利
 
-### 3. 手元で動かす
-
-```sh
-vp env on
-vp install
-cp .env.example .env
-vp exec --filter web alchemy profile edit --add Cloudflare
-```
-
-`vp env on` で、リポジトリが求める版の Node.js と pnpm を vp が用意する。
-`.env` の `OPENROUTER_API_KEY` にキーを書く。
-Cloudflare の認証情報は、最後のコマンドで作る Alchemy のプロファイルに入る。
-
-```sh
-vp run verify
-cd apps/web && vp run dev
-```
-
-verify が通り、dev が表示した URL を開いてアプリが出れば準備はできている。
-
-### 4. GitHub の設定をそろえる
-
-Actions の secrets、Actions による PR 作成の許可、既定ブランチのルールセットは、テンプレートから引き継がれない。
-[masseater/skills](https://github.com/masseater/skills) の `setup-template` スキルの手順で設定する。
-
-設定が済めば、main への push のたびに本番へデプロイされる。
-手元からデプロイするときは `apps/web` で `vp run deploy` を実行する。
-
-## テンプレートの更新を取り込む
-
-作ったリポジトリで Claude Code のセッションを始めると、テンプレートの新しいリリースがあれば知らせが出る。
-取り込むと答えれば、前のリリースとの差分を当てて verify を通すところまで進む。
+ライセンスの MIT はこのリポジトリのコードだけに掛かる。
+元のイラストとサムネイルの権利は、それぞれの作者と権利者にあり、リポジトリには入れていない。
+初音ミクのイラストは KEI によるものである。
+権利は © Crypton Future Media, INC. にあり、[piapro](https://piapro.net/) の条件で使っている。

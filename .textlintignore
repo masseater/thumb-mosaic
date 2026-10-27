@@ -2,3 +2,6 @@ AGENTS.md
 .agents/skills/**
 .claude/worktrees/**
 CHANGELOG.md
+**/.venv/**
+**/.cache/**
+**/out/**

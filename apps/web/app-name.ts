@@ -3,7 +3,7 @@ import { Rules, Zone } from "alchemy/Cloudflare";
 import { Secret } from "alchemy/Fly";
 import { Array as Arr, Effect, Match, Option, Record, Schema, String, pipe } from "effect";
 
-const APP_NAME = "typescript-template";
+const APP_NAME = "thumb-mosaic";
 
 const PREFIX = `${APP_NAME}-`;
 
