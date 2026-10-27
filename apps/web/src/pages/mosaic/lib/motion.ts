@@ -1,9 +1,8 @@
-import { Array, Match } from "effect";
+import { Match } from "effect";
 
 import type { Camera } from "./camera";
-import { introLength } from "./intro";
 import type { Scene, Step } from "./scene";
-import { STILL, settle } from "./scene";
+import { settle } from "./scene";
 
 const FLIGHT_MS = 900;
 const DONE = 1;
@@ -42,12 +41,6 @@ const advance =
     Match.value(scene.motion).pipe(
       Match.discriminatorsExhaustive("status")({
         still: () => scene,
-        intro: ({ start, flights }) => {
-          if (Array.isReadonlyArrayEmpty(flights) || now - start >= introLength(flights)) {
-            return { ...scene, motion: STILL };
-          }
-          return scene;
-        },
         flying: ({ start, from, to }) => {
           const progress = (now - start) / FLIGHT_MS;
           if (progress >= DONE) {

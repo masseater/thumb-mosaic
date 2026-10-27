@@ -14,17 +14,13 @@ import {
   worldCenter,
   zoomAround,
 } from "./camera";
-import { introLength } from "./intro";
-import type { Flight } from "./intro";
 
 const FOCUS_TILE_PIXELS = 160;
 const DOUBLE_TAP_ZOOM = 3;
 const EMPTY = -1;
-const NOT_YET = Number.POSITIVE_INFINITY;
 
 type Motion =
   | Readonly<{ status: "still" }>
-  | Readonly<{ status: "intro"; start: number; flights: readonly Flight[] }>
   | Readonly<{ status: "flying"; start: number; from: Camera; to: Camera }>;
 
 type Gesture =
@@ -68,7 +64,14 @@ const createScene = ({
   cells,
   viewport,
   ratio,
-}: Readonly<{ grid: Grid; cells: readonly number[]; viewport: Size; ratio: number }>): Scene => ({
+  reveal,
+}: Readonly<{
+  grid: Grid;
+  cells: readonly number[];
+  viewport: Size;
+  ratio: number;
+  reveal: number;
+}>): Scene => ({
   grid,
   cells,
   tileOfCell: tileIndexByCell(grid, cells),
@@ -80,7 +83,7 @@ const createScene = ({
   pointers: Record.empty(),
   hover: Option.none(),
   selection: Option.none(),
-  reveal: NOT_YET,
+  reveal,
 });
 
 const tileAt =
@@ -162,37 +165,6 @@ const zoomInAt =
       now,
     })(scene);
 
-const landing = (scene: Scene, now: number): number => {
-  if (scene.motion.status === "intro") {
-    return Math.max(now, scene.motion.start + introLength(scene.motion.flights));
-  }
-  return now;
-};
-
-const playIntro =
-  ({
-    flights,
-    now,
-    imagesReady,
-  }: Readonly<{ flights: readonly Flight[]; now: number; imagesReady: boolean }>): Step =>
-  (scene) => {
-    const started: Scene = {
-      ...scene,
-      camera: fitCamera({ viewport: scene.viewport, grid: scene.grid }),
-      selection: Option.none(),
-      motion: { status: "intro", start: now, flights },
-      reveal: NOT_YET,
-    };
-    if (imagesReady) {
-      return { ...started, reveal: landing(started, now) };
-    }
-    return started;
-  };
-
-const showImages =
-  (now: number): Step =>
-  (scene) => ({ ...scene, reveal: landing(scene, now) });
-
 const settle =
   (camera: Camera): Step =>
   (scene) => ({ ...scene, camera, motion: STILL });
@@ -208,11 +180,9 @@ export {
   createScene,
   flyHome,
   focus,
-  playIntro,
   resize,
   select,
   settle,
-  showImages,
   tileAt,
   zoomAt,
   zoomInAt,
