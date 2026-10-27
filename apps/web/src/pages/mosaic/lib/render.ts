@@ -1,4 +1,4 @@
-import { Array, Option, pipe } from "effect";
+import { Array, Option } from "effect";
 
 import type { Point } from "./camera";
 import { CELL_HEIGHT, CELL_WIDTH } from "./camera";
@@ -7,9 +7,7 @@ import type { Flight, Pose } from "./intro";
 import type { Scene } from "./scene";
 import type { Sprite, Sprites } from "./sprites";
 
-const SMALL = 0;
 const LARGE = 1;
-const SHARPER = 1.2;
 const HALF = 0.5;
 const ORIGIN = 0;
 const IDENTITY = 1;
@@ -49,18 +47,8 @@ const blit = (context: CanvasRenderingContext2D, sprite: Sprite, rect: Rect): vo
   );
 };
 
-const spriteFor = ({ sprites, scene }: Frame, tile: number): Option.Option<Sprite> => {
-  const devicePixels = CELL_WIDTH * scene.camera.scale * scene.ratio;
-  const small = (): Option.Option<Sprite> => sprites.atlas(SMALL, tile);
-  const large = (): Option.Option<Sprite> => pipe(sprites.atlas(LARGE, tile), Option.orElse(small));
-  if (devicePixels > sprites.atlasWidth(LARGE) * SHARPER) {
-    return pipe(sprites.tile(tile), Option.orElse(large));
-  }
-  if (devicePixels > sprites.atlasWidth(SMALL) * SHARPER) {
-    return large();
-  }
-  return small();
-};
+const spriteFor = ({ sprites, scene }: Frame, tile: number, cell: number): Option.Option<Sprite> =>
+  sprites.best({ tile, cell, devicePixels: CELL_WIDTH * scene.camera.scale * scene.ratio });
 
 const cellRect = (scene: Scene, cell: number): Rect => {
   const { camera, ratio, grid } = scene;
@@ -87,7 +75,7 @@ const drawCell = (frame: Frame, cell: number): void => {
   if (tile === EMPTY) {
     return;
   }
-  const sprite = spriteFor(frame, tile);
+  const sprite = spriteFor(frame, tile, cell);
   if (Option.isSome(sprite)) {
     blit(frame.context, sprite.value, cellRect(frame.scene, cell));
   }
@@ -157,10 +145,11 @@ const drawFlight = (
 ): void => {
   const { scene } = frame;
   const pose = poseAt({ flight, elapsed });
-  placeFlight(frame, pose, flightCenter(scene, scene.cells[tile] ?? ORIGIN));
+  const cell = scene.cells[tile] ?? ORIGIN;
+  placeFlight(frame, pose, flightCenter(scene, cell));
   const width = CELL_WIDTH * scene.camera.scale * pose.scale;
   const height = CELL_HEIGHT * scene.camera.scale * pose.scale;
-  const sprite = frame.sprites.atlas(SMALL, tile);
+  const sprite = frame.sprites.overview(cell);
   if (Option.isSome(sprite)) {
     blit(frame.context, sprite.value, { left: -width * HALF, top: -height * HALF, width, height });
   }

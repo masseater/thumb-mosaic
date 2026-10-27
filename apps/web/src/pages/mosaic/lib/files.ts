@@ -1,12 +1,8 @@
-import { objectKey } from "@thumb-mosaic/mosaic";
-import { String, pipe } from "effect";
+import { versionPath } from "@thumb-mosaic/mosaic";
 
 import { BASE_PATH } from "#/shared/config";
 
 const filesBase = ({ slug, version }: Readonly<{ slug: string; version: string }>): string =>
-  pipe(
-    `${BASE_PATH}/api/mosaics/${objectKey({ slug, version, file: "" })}`,
-    String.replace(/\/$/u, ""),
-  );
+  `${BASE_PATH}/${versionPath({ slug, version })}`;
 
 export { filesBase };

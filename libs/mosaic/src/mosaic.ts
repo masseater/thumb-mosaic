@@ -3,9 +3,8 @@ import { Schema } from "effect";
 const Level = Schema.Struct({
   tw: Schema.Int,
   th: Schema.Int,
-  perRow: Schema.Int,
-  perAtlas: Schema.Int,
-  files: Schema.Array(Schema.String),
+  block: Schema.Int,
+  blocks: Schema.Array(Schema.Tuple([Schema.Int, Schema.Int, Schema.String])),
 });
 
 const Tile = Schema.Tuple([Schema.Int, Schema.String, Schema.String, Schema.String, Schema.String]);

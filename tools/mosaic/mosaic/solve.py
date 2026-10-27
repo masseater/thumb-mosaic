@@ -72,13 +72,28 @@ def assign(cells: np.ndarray, pool: np.ndarray) -> np.ndarray:
     return out
 
 
-def solve(ch: Character, cache: Path, out: Path) -> None:
+SERVICE_LABEL = {"Youtube": "YouTube", "NicoNicoDouga": "ニコニコ"}
+
+
+def solve(ch: Character, cache: Path, data: Path) -> None:
     pool = np.load(cache / "features.npy")
+    entries = json.loads((cache / "pool.json").read_text())
     rows, cells, cfeats = target_cells(ch, cache)
     started = time.time()
     chosen = assign(cfeats, pool)
     delta = np.sqrt(((cfeats - pool[chosen]) ** 2).reshape(len(cells), BLOCKS_X * BLOCKS_Y, 3).sum(2)).mean()
-    out.mkdir(parents=True, exist_ok=True)
-    layout = {"cols": ch.cols, "rows": rows, "pool": len(pool), "meanDelta": round(float(delta), 4), "cells": [[int(c), int(p)] for c, p in zip(cells, chosen)]}
-    (out / "layout.json").write_text(json.dumps(layout))
+    picked = sorted(zip(cells.tolist(), chosen.tolist()))
+    tiles = [entries[p] for _, p in picked]
+    assignment = {
+        "character": ch.name,
+        "credit": ch.credit,
+        "cols": ch.cols,
+        "rows": rows,
+        "pool": len(pool),
+        "meanDelta": round(float(delta), 4),
+        "tiles": [[c, e["name"], e["artist"], e["url"], SERVICE_LABEL[e["service"]]] for (c, _), e in zip(picked, tiles)],
+        "fallbacks": [e["thumbs"][0] if e["service"] == "NicoNicoDouga" else "" for e in tiles],
+    }
+    data.parent.mkdir(parents=True, exist_ok=True)
+    data.write_text(json.dumps(assignment, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"solve cells={len(cells)} pool={len(pool)} meanDelta={delta:.4f} seconds={time.time() - started:.1f}", file=sys.stderr)
