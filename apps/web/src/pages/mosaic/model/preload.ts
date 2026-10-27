@@ -58,7 +58,7 @@ const overviewImages = ({
 
 const cardOf = ({ mosaic, slug }: Readonly<{ mosaic: Mosaic; slug: string }>): Card => ({
   title: `${slug}.mosaic`,
-  description: `${mosaic.cells.length.toLocaleString("ja-JP")} 本の動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
+  description: `動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
   image: `${SITE_ORIGIN}${filesBase({ slug, version: mosaic.version })}/${mosaic.og}`,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,
 });
