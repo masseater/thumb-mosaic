@@ -41,7 +41,7 @@ catalog:
   markdownlint-cli2: 0.24.0
   chrome-launcher: 1.2.2
   lighthouse: 13.5.0
-  puppeteer-core: 25.14.0
+  puppeteer-core: 25.16.0
   "@webgpu/types": 0.1.74
   simple-icons: 16.36.0
 catalogs:
