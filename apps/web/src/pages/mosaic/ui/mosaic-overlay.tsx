@@ -1,8 +1,8 @@
-import { Array, Option, pipe } from "effect";
+import { Option } from "effect";
 import type { ReactNode } from "react";
 
 import type { Mosaic } from "#/pages/mosaic/lib/sprites";
-import { useTiles } from "#/pages/mosaic/model/tiles";
+import { useTile } from "#/pages/mosaic/model/tiles";
 import { useSelection } from "#/pages/mosaic/model/viewer";
 
 import { MosaicCredit } from "./mosaic-credit";
@@ -13,16 +13,8 @@ const MosaicOverlay = ({
   mosaic,
   filesBase,
 }: Readonly<{ mosaic: Mosaic; filesBase: string }>): ReactNode => {
-  const tiles = useTiles();
-  const selected = pipe(
-    useSelection(),
-    Option.flatMap((index) =>
-      pipe(
-        Array.get(tiles, index),
-        Option.map((tile) => ({ index, tile })),
-      ),
-    ),
-  );
+  const selection = useSelection();
+  const selected = Option.all({ index: selection, tile: useTile(selection) });
   return (
     <>
       <MosaicToolbar />

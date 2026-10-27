@@ -18,6 +18,8 @@ LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8))
 TILE = (640, 360)
 QUALITY = 82
 ATLAS_QUALITY = 80
+CHUNK = 256
+CHUNK_DIR = "tiles"
 YOUTUBE_SIZES = ("maxresdefault", "sddefault", "hqdefault", "mqdefault")
 OG_IMAGE = re.compile(r'property="og:image" content="([^"]+)"')
 
@@ -81,7 +83,7 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
 def site(slug: str, data: Path, cache: Path, public: Path) -> None:
     raw = data.read_bytes()
     assignment = json.loads(raw)
-    version = hashlib.sha256(raw + mask_path(data).read_bytes() + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY)).encode()).hexdigest()[:16]
+    version = hashlib.sha256(raw + mask_path(data).read_bytes() + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK)).encode()).hexdigest()[:16]
     cache.mkdir(parents=True, exist_ok=True)
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
@@ -97,6 +99,10 @@ def site(slug: str, data: Path, cache: Path, public: Path) -> None:
     levels = [_level(list(zip(cells, paths)), grid, out, *spec) for spec in LEVELS]
     shutil.copyfile(mask_path(data), out / "mask.webp")
     (out / "tiles.json").write_text(json.dumps(tiles, ensure_ascii=False, separators=(",", ":")))
+    (out / CHUNK_DIR).mkdir()
+    for start in range(0, len(tiles), CHUNK):
+        chunk = json.dumps(tiles[start : start + CHUNK], ensure_ascii=False, separators=(",", ":"))
+        (out / CHUNK_DIR / f"{start // CHUNK}.json").write_text(chunk)
     manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles")}
     manifest |= {
         "version": version,
@@ -105,6 +111,7 @@ def site(slug: str, data: Path, cache: Path, public: Path) -> None:
         "cells": cells,
         "mask": "mask.webp",
         "tiles": "tiles.json",
+        "chunk": {"size": CHUNK, "dir": CHUNK_DIR},
     }
     (public / f"{slug}.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
     widths: dict[int, int] = {}
