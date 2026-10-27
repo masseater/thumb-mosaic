@@ -99,11 +99,16 @@ def _og(tiles: list[tuple[int, Path]], cols: int, crop: tuple[int, int, int], ou
     card.resize(OG_SIZE, Image.LANCZOS).save(out / OG_FILE, quality=QUALITY, optimize=True, progressive=True)
 
 
-def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
+def site(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path]) -> None:
+    public, originals = outputs
     cache.mkdir(parents=True, exist_ok=True)
-    if (public / ch.slug).exists():
-        shutil.rmtree(public / ch.slug)
-    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v)) for v in range(ch.variants)]
+    for root in outputs:
+        if (root / ch.slug).exists():
+            shutil.rmtree(root / ch.slug)
+    variants = [
+        _variant(ch, variant_path(data, v), cache, (public / ch.slug / str(v), originals / ch.slug / str(v)))
+        for v in range(ch.variants)
+    ]
     ids: dict[str, int] = {}
     candidates = [[[ids.setdefault(m["urls"][i], len(ids)), m["errors"][i]] for m in variants] for i in range(len(variants[0]["cells"]))]
     (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
@@ -118,7 +123,8 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
     print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 
-def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
+def _variant(ch: Character, data: Path, cache: Path, outputs: tuple[Path, Path]) -> dict:
+    public, originals = outputs
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
@@ -126,9 +132,10 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
     with cf.ThreadPoolExecutor(16) as ex:
         paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache), zip(tiles, assignment["fallbacks"])))
     out = public / version
-    (out / "t").mkdir(parents=True)
+    out.mkdir(parents=True)
+    (originals / version / "t").mkdir(parents=True)
     for i, path in enumerate(paths):
-        shutil.copyfile(path, out / "t" / f"{i}.jpg")
+        shutil.copyfile(path, originals / version / "t" / f"{i}.jpg")
     cells = [t[0] for t in tiles]
     grid = (assignment["cols"], assignment["rows"])
     levels = [_level(list(zip(cells, paths)), grid, out, *spec) for spec in LEVELS]

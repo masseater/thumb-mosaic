@@ -26,11 +26,14 @@
 cd tools/mosaic
 uv run mosaic pool miku    # VocaDB から曲とサムネイルを集める
 uv run mosaic solve miku   # 割り当てを libs/mosaic/data/miku/<通りの番号>.json に書く
-uv run mosaic site         # サムネイルを取り、apps/web/public/files に書き出す
+uv run mosaic site         # 縮小画像を apps/web/public/files、原寸を .cache/originals に書く
 ```
 
 リポジトリに入るのは割り当ての結果だけで、画像は入れない。
 main の CI がデプロイの前に `site` を動かし、取ったサムネイルを Actions のキャッシュに残す。
+縮小画像は Worker の静的アセットで配る。
+原寸のサムネイルは、8 通りぶんで静的アセットのファイル数の上限を超える。
+そこで、デプロイの後に `tools/mosaic-upload` が R2 へ上げ、Worker が同じ URL で返す。
 
 キャラクターは `libs/mosaic/src/characters.json` に足す。
 

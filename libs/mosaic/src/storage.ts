@@ -1,5 +1,7 @@
 const FILES_DIR = "files";
 
+const ORIGINALS_BUCKET = "thumb-mosaic-originals";
+
 interface VariantRef {
   readonly slug: string;
   readonly variant: number;
@@ -14,4 +16,4 @@ const versionPath = ({ slug, variant, version }: VariantRef): string =>
   `${slugPath(slug)}/${variant}/${version}`;
 
 export type { VariantRef };
-export { FILES_DIR, manifestPath, slugPath, versionPath };
+export { FILES_DIR, ORIGINALS_BUCKET, manifestPath, slugPath, versionPath };
