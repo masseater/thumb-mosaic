@@ -1,12 +1,8 @@
-const MOSAIC_BUCKET = "thumb-mosaic-tiles";
+const FILES_DIR = "files";
 
-const manifestKey = (slug: string): string => `${slug}/meta.json`;
+const manifestPath = (slug: string): string => `${FILES_DIR}/${slug}.json`;
 
-const objectKey = ({
-  slug,
-  version,
-  file,
-}: Readonly<{ slug: string; version: string; file: string }>): string =>
-  `${slug}/${version}/${file}`;
+const versionPath = ({ slug, version }: Readonly<{ slug: string; version: string }>): string =>
+  `${FILES_DIR}/${slug}/${version}`;
 
-export { MOSAIC_BUCKET, manifestKey, objectKey };
+export { FILES_DIR, manifestPath, versionPath };

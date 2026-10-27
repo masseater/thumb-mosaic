@@ -104,6 +104,25 @@ jobs:
           run-install: |
             - args: ['--frozen-lockfile']
       - if: steps.head.outputs.latest == 'true'
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          enable-cache: false
+      - id: tiles
+        if: steps.head.outputs.latest == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mosaic/.cache/tiles
+          key: mosaic-tiles-${{ hashFiles('libs/mosaic/data/*.json') }}
+          restore-keys: mosaic-tiles-
+      - if: steps.head.outputs.latest == 'true'
+        run: uv run mosaic site
+        working-directory: tools/mosaic
+      - if: steps.head.outputs.latest == 'true' && steps.tiles.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mosaic/.cache/tiles
+          key: mosaic-tiles-${{ hashFiles('libs/mosaic/data/*.json') }}
+      - if: steps.head.outputs.latest == 'true'
         run: vp exec alchemy deploy --stage production --yes
         working-directory: apps/web
         env:

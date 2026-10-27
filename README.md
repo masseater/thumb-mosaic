@@ -18,10 +18,13 @@
 
 ```sh
 cd tools/mosaic
-uv run mosaic all miku       # 収集・割り当て・画像の書き出し
-cd ../mosaic-upload
-vp run upload -- miku ../mosaic/out/miku/site  # R2 へ
+uv run mosaic pool miku    # VocaDB から曲とサムネイルを集める
+uv run mosaic solve miku   # 割り当てを libs/mosaic/data/miku.json に書く
+uv run mosaic site         # サムネイルを取り、apps/web/public/files に書き出す
 ```
+
+リポジトリに入るのは割り当ての結果だけで、画像は入れない。
+main の CI がデプロイの前に `site` を動かし、取ったサムネイルを Actions のキャッシュに残す。
 
 キャラクターは `libs/mosaic/src/characters.json` に足す。
 

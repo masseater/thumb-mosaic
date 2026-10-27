@@ -14,7 +14,7 @@ def get(url: str, tries: int = 6) -> bytes | None:
             with urllib.request.urlopen(req, timeout=120) as res:
                 return res.read()
         except urllib.error.HTTPError as e:
-            if e.code == 404:
+            if e.code in (403, 404, 410):
                 return None
             print(f"retry {attempt + 1}/{tries} {url}: {e}", file=sys.stderr, flush=True)
         except (OSError, http.client.HTTPException) as e:

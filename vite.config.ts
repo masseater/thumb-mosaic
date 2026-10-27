@@ -115,7 +115,7 @@ export default defineConfig({
             {
               from: "package",
               package: "@cloudflare/workers-types",
-              name: ["AnalyticsEngineDataset", "R2ObjectBody"],
+              name: ["AnalyticsEngineDataset"],
             },
             { from: "package", package: "@tanstack/query-core", name: "QueryClient" },
             {
