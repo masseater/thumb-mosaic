@@ -26,6 +26,6 @@ const PublishedMosaic = Schema.Struct({
   chunk: Schema.Struct({ size: Schema.Int, dir: Schema.String }),
 });
 
-const Candidates = Schema.Array(Schema.Array(Schema.Int));
+const Candidates = Schema.Array(Schema.Array(Schema.Tuple([Schema.Int, Schema.Int])));
 
 export { Candidates, PublishedMosaic, Tile, Tiles };

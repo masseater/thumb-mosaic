@@ -105,10 +105,10 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
         shutil.rmtree(public / ch.slug)
     variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v)) for v in range(ch.variants)]
     ids: dict[str, int] = {}
-    candidates = [[ids.setdefault(m["urls"][i], len(ids)) for m in variants] for i in range(len(variants[0]["cells"]))]
+    candidates = [[[ids.setdefault(m["urls"][i], len(ids)), m["errors"][i]] for m in variants] for i in range(len(variants[0]["cells"]))]
     (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
     first = variants[0]
-    manifest = {k: v for k, v in first.items() if k not in ("urls", "version", "variant", "meanDelta", "og")}
+    manifest = {k: v for k, v in first.items() if k not in ("urls", "errors", "version", "variant", "meanDelta", "og")}
     manifest |= {
         "og": f"0/{first['version']}/{first['og']}",
         "candidates": CANDIDATES,
@@ -138,7 +138,7 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
     for start in range(0, len(tiles), CHUNK):
         chunk = json.dumps(tiles[start : start + CHUNK], ensure_ascii=False, separators=(",", ":"))
         (out / CHUNK_DIR / f"{start // CHUNK}.json").write_text(chunk)
-    manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles", "pool")}
+    manifest = {k: v for k, v in assignment.items() if k not in ("fallbacks", "tiles", "pool", "errors")}
     manifest |= {
         "version": version,
         "levels": levels,
@@ -153,4 +153,4 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
         w = Image.open(path).size[0]
         widths[w] = widths.get(w, 0) + 1
     print(f"site {ch.slug}/{public.name} version={version} tiles={len(paths)} widths={dict(sorted(widths.items()))}", file=sys.stderr)
-    return manifest | {"urls": [t[3] for t in tiles]}
+    return manifest | {"urls": [t[3] for t in tiles], "errors": assignment["errors"]}
