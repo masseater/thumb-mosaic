@@ -1,4 +1,4 @@
-import { Array, Effect, Option, Order, Random, pipe } from "effect";
+import { Array, Effect, Function, Option, Order, Random, pipe } from "effect";
 
 import type { Candidates as CandidatesSchema } from "./mosaic.ts";
 
@@ -12,6 +12,9 @@ type Options = readonly (readonly Edge[])[];
 type Owner = (cell: number) => Option.Option<number>;
 
 const TEMPERATURE = 40;
+const BAN_RATE = 0.5;
+const BAN_PENALTY = 1_000_000;
+const NO_PENALTY = 0;
 const FIRST = 0;
 const NEXT = 1;
 
@@ -26,19 +29,40 @@ const gumbel = pipe(
   Effect.map((uniform) => -Math.log(-Math.log(Math.max(uniform, Number.EPSILON)))),
 );
 
-const scoredOptions = (candidates: typeof CandidatesSchema.Type): Effect.Effect<Options> =>
+const thumbnailCount = (candidates: typeof CandidatesSchema.Type): number =>
   pipe(
     candidates,
-    Effect.forEach((options, cell) =>
-      pipe(
-        options,
-        Effect.forEach(([thumbnail, error]) =>
-          pipe(
-            gumbel,
-            Effect.map((noise) => ({ cell, thumbnail, score: error - TEMPERATURE * noise })),
+    Array.flatten,
+    Array.map(([thumbnail]) => thumbnail + NEXT),
+    Option.liftPredicate(Array.isArrayNonEmpty),
+    Option.map(Array.max(Order.Number)),
+    Option.getOrElse(() => FIRST),
+  );
+
+const banPenalties = (count: number): Effect.Effect<readonly number[]> =>
+  Effect.forEach(Array.makeBy(count, Function.identity), () =>
+    Random.next.pipe(Effect.map((draw) => Number(draw < BAN_RATE) * BAN_PENALTY)),
+  );
+
+const scoredOptions = (candidates: typeof CandidatesSchema.Type): Effect.Effect<Options> =>
+  Effect.flatMap(banPenalties(thumbnailCount(candidates)), (penalties) =>
+    pipe(
+      candidates,
+      Effect.forEach((options, cell) =>
+        pipe(
+          options,
+          Effect.forEach(([thumbnail, error]) =>
+            pipe(
+              gumbel,
+              Effect.map((noise) => ({
+                cell,
+                thumbnail,
+                score: error + (penalties[thumbnail] ?? NO_PENALTY) - TEMPERATURE * noise,
+              })),
+            ),
           ),
+          Effect.map(byScore),
         ),
-        Effect.map(byScore),
       ),
     ),
   );

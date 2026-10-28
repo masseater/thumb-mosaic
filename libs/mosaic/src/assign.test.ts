@@ -16,6 +16,13 @@ const CANDIDATES = Array.makeBy(CELLS, (cell) =>
   ]),
 );
 
+const SPARE_CANDIDATES = Array.makeBy(CELLS, (cell) =>
+  Array.makeBy(VARIANTS, (variant): readonly [number, number] => [
+    cell * VARIANTS + variant,
+    variant * POOR_FIT,
+  ]),
+);
+
 const thumbnailsOf = (choice: readonly number[]): readonly Option.Option<number>[] =>
   pipe(
     choice,
@@ -46,7 +53,9 @@ const allBest = (choice: readonly number[]): boolean =>
     choice,
     Array.every((variant) => variant === BEST),
   );
-const bestFit = Effect.runPromise(assigned().pipe(Effect.map(allBest)));
+const bestFit = Effect.runPromise(
+  assignVariants({ candidates: SPARE_CANDIDATES, seed: SEED }).pipe(Effect.map(allBest)),
+);
 const repeatable = Effect.runPromise(
   Effect.all([assigned(), assigned()]).pipe(Effect.map(sameChoice)),
 );
@@ -54,7 +63,7 @@ const repeatable = Effect.runPromise(
 describe("assignVariants", () => {
   it("uses each thumbnail once", () => expect(distinct).resolves.toBe(CELLS));
 
-  it("prefers thumbnails that fit the cell", () => expect(bestFit).resolves.toBe(true));
+  it("sets aside some of the best fits for each seed", () => expect(bestFit).resolves.toBe(false));
 
   it("returns the same choice for the same seed", () => expect(repeatable).resolves.toBe(true));
 });
