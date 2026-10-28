@@ -1,6 +1,8 @@
+import io
 import json
 import sys
 import time
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -19,15 +21,38 @@ CHUNK = 2000
 COVERAGE = 0.05
 REUSE_PENALTY = 1.0
 ERROR_SCALE = 10000
+PART_GAP = 0.02
+
+
+def _member(archive: bytes, name: str) -> bytes:
+    with zipfile.ZipFile(io.BytesIO(archive), metadata_encoding="cp932") as z:
+        return z.read(name)
+
+
+def _part(url: str, member: str | None) -> Image.Image:
+    raw = get(url)
+    if raw is None:
+        raise RuntimeError(f"元画像を取れなかった: {url}")
+    return Image.open(io.BytesIO(_member(raw, member) if member else raw)).convert("RGBA")
+
+
+def _side_by_side(parts: list[Image.Image]) -> Image.Image:
+    trimmed = [p.crop(p.getchannel("A").getbbox()) for p in parts]
+    height = max(p.height for p in trimmed)
+    gap = round(height * PART_GAP)
+    joined = Image.new("RGBA", (sum(p.width for p in trimmed) + gap * (len(trimmed) - 1), height), (0, 0, 0, 0))
+    x = 0
+    for p in trimmed:
+        joined.paste(p, (x, height - p.height))
+        x += p.width + gap
+    return joined
 
 
 def load_target(ch: Character, cache: Path) -> Image.Image:
     path = cache / "target.png"
     if not path.exists():
-        raw = get(ch.target_url)
-        if raw is None:
-            raise RuntimeError(f"元画像を取れなかった: {ch.target_url}")
-        path.write_bytes(raw)
+        parts = [_part(url, member) for url, member in ch.targets]
+        (parts[0] if len(parts) == 1 else _side_by_side(parts)).save(path)
     return Image.open(path).convert("RGBA")
 
 

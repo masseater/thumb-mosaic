@@ -8,11 +8,14 @@
 ## 公開先
 
 - 初音ミク: <https://masseater.dev/mosaic/miku>
+- 重音テト: <https://masseater.dev/mosaic/teto>
+- 足立レイ: <https://masseater.dev/mosaic/adachi>
+- 琴葉茜・葵: <https://masseater.dev/mosaic/kotonoha>
 
 ## 作り方
 
 動画とサムネイルは [VocaDB](https://vocadb.net/) の楽曲一覧から集め、ニコニコ動画と YouTube のサムネイルを使う。
-元の絵を 80 列のマスに分け、マスとサムネイルの色の違いの合計がもっとも小さくなるよう、全体を一度に割り当てる。
+元の絵を `characters.json` の `cols` の列数のマスに分け、マスとサムネイルの色の違いの合計がもっとも小さくなるよう、全体を一度に割り当てる。
 色は OKLab の色空間で、各マスを 4×3 の小区画に分けて比べる。
 ほぼ同じサムネイルは、知覚ハッシュで 1 枚にまとめてから割り当てる。
 割り当ては `characters.json` の `variants` の数だけ作り、2 通り目からは前の通りで使ったサムネイルほど選ばれにくくする。
@@ -46,3 +49,6 @@ main への push のほかに毎日 1 回デプロイし、取ったサムネイ
 元のイラストとサムネイルの権利は、それぞれの作者と権利者にあり、リポジトリには入れていない。
 初音ミクのイラストは KEI によるものである。
 権利は © Crypton Future Media, INC. にあり、[piapro](https://piapro.net/) の条件で使っている。
+重音テトのイラストは線によるもので、[重音テト公式サイト](https://kasaneteto.jp/illust-logo/)の配布素材を[キャラクター利用規約](https://kasaneteto.jp/guideline/character.html)の範囲で使っている。
+足立レイの立ち絵はみさいるによるもので、[メカニカルガールの公式サイト](https://mechanicalgirl.jp/adachi-rei/)の配布素材を[キャラクター使用ガイドライン](https://mechanicalgirl.jp/guidelines)の範囲で使っている。
+琴葉茜・葵は A.I.VOICE 琴葉 茜・葵の公式の立ち絵を 2 枚並べて元の絵にしている。権利は株式会社エーアイにある。
