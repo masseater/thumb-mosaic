@@ -6,8 +6,7 @@ import type { Visit } from "#/pages/mosaic/lib/files";
 import { useTile } from "#/pages/mosaic/model/tiles";
 import { useArrival, useSelection } from "#/pages/mosaic/model/viewer";
 
-import { MosaicCredit } from "./mosaic-credit";
-import { MosaicToolbar } from "./mosaic-toolbar";
+import { MosaicChrome } from "./mosaic-chrome";
 import { TileCard } from "./tile-card";
 
 const MosaicOverlay = ({ visit }: Readonly<{ visit: Visit }>): ReactNode => {
@@ -22,8 +21,7 @@ const MosaicOverlay = ({ visit }: Readonly<{ visit: Visit }>): ReactNode => {
   const arrived = useArrival() === "arrived";
   return (
     <>
-      {arrived && <MosaicToolbar slug={visit.slug} seed={visit.seed} />}
-      {arrived && <MosaicCredit slug={visit.slug} seed={visit.seed} />}
+      {arrived && <MosaicChrome slug={visit.slug} seed={visit.seed} />}
       {Option.isSome(selected) && (
         <TileCard tile={selected.value.tile} crop={selected.value.crop} />
       )}
