@@ -126,13 +126,13 @@ jobs:
       - if: always() && steps.build-pool.outcome != 'skipped'
         run: |
           shopt -s nullglob
-          tar -cf pool.tar -- */small */target.png */vocadb/songs.json
+          tar -cf pool.tar -- */small */target.png */vocadb/songs.json */thumbs.npz
         working-directory: tools/mosaic/.cache
       - if: always() && steps.build-pool.outcome != 'skipped'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tools/mosaic/.cache/pool.tar
-          key: mosaic-pool-${{ hashFiles('tools/mosaic/.cache/*/vocadb/songs.json') }}
+          key: mosaic-pool-${{ hashFiles('tools/mosaic/.cache/*/vocadb/songs.json', 'tools/mosaic/.cache/*/thumbs.npz') }}
       - if: steps.head.outputs.latest == 'true'
         run: uv run mosaic solve
         working-directory: tools/mosaic
