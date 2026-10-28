@@ -45,3 +45,6 @@ dist-ssr
 .playwright/
 .playwright-cli/
 tools/web-vitals/report/
+
+# mosaic solve の出力（CI のデプロイで毎回作る）
+libs/mosaic/data/

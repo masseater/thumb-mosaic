@@ -3,6 +3,8 @@ name: verify
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "17 18 * * *"
   workflow_dispatch:
 
 permissions: {}
@@ -76,7 +78,7 @@ jobs:
 
   deploy:
     needs: verify
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -107,6 +109,27 @@ jobs:
         uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           enable-cache: false
+      - id: pool
+        if: steps.head.outputs.latest == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            tools/mosaic/.cache/*/small
+            tools/mosaic/.cache/*/target.png
+            tools/mosaic/.cache/*/vocadb/songs.json
+          key: mosaic-pool-${{ github.run_id }}
+          restore-keys: mosaic-pool-
+      - if: steps.head.outputs.latest == 'true'
+        run: uv run mosaic pool && uv run mosaic solve
+        working-directory: tools/mosaic
+      - if: steps.head.outputs.latest == 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            tools/mosaic/.cache/*/small
+            tools/mosaic/.cache/*/target.png
+            tools/mosaic/.cache/*/vocadb/songs.json
+          key: mosaic-pool-${{ hashFiles('tools/mosaic/.cache/*/vocadb/songs.json') }}
       - id: tiles
         if: steps.head.outputs.latest == 'true'
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

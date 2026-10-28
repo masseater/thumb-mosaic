@@ -10,7 +10,7 @@ from PIL import Image
 from .characters import Character
 from .image import crop_to_tile, dhash, features
 from .net import get
-from .vocadb import YOUTUBE_SIZES, pages, thumbnail_candidates
+from .vocadb import YOUTUBE_SIZES, songs, thumbnail_candidates
 
 SMALL = (160, 90)
 MIN_WIDTH = 320
@@ -45,9 +45,9 @@ def _download(song: dict, small_dir: Path) -> dict | None:
 def build_pool(ch: Character, cache: Path, limit: int | None) -> None:
     small_dir = cache / "small"
     small_dir.mkdir(parents=True, exist_ok=True)
-    songs = list(pages(ch.vocadb_artist_id, cache / "vocadb", limit))
+    found = songs(ch.vocadb_artist_id, cache / "vocadb", limit)
     with cf.ThreadPoolExecutor(16) as ex:
-        entries = [e for e in ex.map(lambda s: _download(s, small_dir), songs) if e]
+        entries = [e for e in ex.map(lambda s: _download(s, small_dir), found) if e]
     seen: set[bytes] = set()
     kept, feats = [], []
     for e in entries:
@@ -60,4 +60,4 @@ def build_pool(ch: Character, cache: Path, limit: int | None) -> None:
         feats.append(features(im))
     np.save(cache / "features.npy", np.array(feats, dtype=np.float32))
     (cache / "pool.json").write_text(json.dumps(kept, ensure_ascii=False))
-    print(f"pool songs={len(songs)} downloaded={len(entries)} unique={len(kept)}", file=sys.stderr)
+    print(f"pool songs={len(found)} downloaded={len(entries)} unique={len(kept)}", file=sys.stderr)
