@@ -134,7 +134,6 @@ jobs:
           key: mosaic-pool-${{ matrix.slug }}-${{ github.run_id }}
           restore-keys: |
             mosaic-pool-${{ matrix.slug }}-
-            mosaic-pool-
       - if: steps.pool.outputs.cache-matched-key != ''
         run: |
           if tar -tf pool.tar -- "$SLUG" > /dev/null; then
@@ -162,21 +161,8 @@ jobs:
           key: mosaic-pool-${{ matrix.slug }}-${{ hashFiles(format('tools/mosaic/.cache/{0}/vocadb/songs.json', matrix.slug), format('tools/mosaic/.cache/{0}/thumbs.npz', matrix.slug)) }}
       - run: uv run mosaic solve "$SLUG"
         working-directory: tools/mosaic
-      - id: tiles
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: tools/mosaic/.cache/tiles
-          key: mosaic-tiles-${{ matrix.slug }}-${{ hashFiles(format('libs/mosaic/data/{0}/*.json', matrix.slug)) }}
-          restore-keys: |
-            mosaic-tiles-${{ matrix.slug }}-
-            mosaic-tiles-
       - run: uv run mosaic site "$SLUG"
         working-directory: tools/mosaic
-      - if: steps.tiles.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: tools/mosaic/.cache/tiles
-          key: mosaic-tiles-${{ matrix.slug }}-${{ hashFiles(format('libs/mosaic/data/{0}/*.json', matrix.slug)) }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mosaic-${{ matrix.slug }}
