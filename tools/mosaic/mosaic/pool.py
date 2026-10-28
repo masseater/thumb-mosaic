@@ -14,6 +14,8 @@ from .vocadb import YOUTUBE_SIZES, songs, thumbnail_candidates
 
 SMALL = (160, 90)
 MIN_WIDTH = 320
+THUMB_TRIES = 2
+THUMB_TIMEOUT = 30
 
 
 def _load_thumbs(path: Path) -> tuple[dict[int, tuple[bytes, np.ndarray]], set[int]]:
@@ -43,7 +45,7 @@ def _download(song: dict, small_dir: Path, missing: set[int]) -> dict | None:
     pv, urls = picked
     path = small_dir / f"{song['id']}.jpg"
     if not path.exists():
-        raw = get(urls[0])
+        raw = get(urls[0], THUMB_TRIES, THUMB_TIMEOUT)
         if raw is None:
             missing.add(song["id"])
             return None
