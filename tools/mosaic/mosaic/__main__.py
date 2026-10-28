@@ -27,7 +27,7 @@ def main() -> None:
         if args.step in ("solve", "all"):
             solve(ch, cache, data)
         if args.step in ("site", "all"):
-            site(ch, data, ROOT / ".cache" / "tiles", PUBLIC)
+            site(ch, data, ROOT / ".cache" / "tiles", PUBLIC, cache)
 
 
 if __name__ == "__main__":

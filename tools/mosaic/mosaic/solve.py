@@ -13,6 +13,7 @@ from scipy.sparse.csgraph import min_weight_full_bipartite_matching
 from .characters import Character
 from .image import BLOCKS_X, BLOCKS_Y, TILE_ASPECT, oklab
 from .net import get
+from .pool import POOL_FILE
 
 NEAREST = 300
 RANDOM_EDGES = 24
@@ -112,7 +113,7 @@ def variant_path(data: Path, variant: int) -> Path:
 
 def solve(ch: Character, cache: Path, data: Path) -> None:
     pool = np.load(cache / "features.npy")
-    entries = json.loads((cache / "pool.json").read_text())
+    entries = json.loads((cache / POOL_FILE).read_text())
     rows, cells, cfeats, weights = target_cells(ch, cache)
     uses = np.zeros(len(pool))
     reuse = 0.0
