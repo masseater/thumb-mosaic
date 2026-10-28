@@ -4,7 +4,7 @@ interface Character {
   readonly slug: string;
   readonly name: string;
   readonly vocadbArtistId: number;
-  readonly targetUrl: string;
+  readonly targets: readonly Readonly<{ url: string; member?: string }>[];
   readonly cols: number;
   readonly credit: string;
   readonly og: Readonly<{ col: number; row: number; cols: number }>;
