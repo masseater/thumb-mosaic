@@ -1,6 +1,6 @@
-import { FILES_DIR, ORIGINALS_BUCKET } from "@thumb-mosaic/mosaic";
+import { FILES_DIR } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
-import { R2, Website, Workers, providers, state } from "alchemy/Cloudflare";
+import { Website, Workers, providers, state } from "alchemy/Cloudflare";
 import type { InferEnv } from "alchemy/Cloudflare";
 import { Array as Arr, Config, Effect, Option, Record as Rec, Schema, pipe } from "effect";
 
@@ -33,24 +33,21 @@ const ASSET_HEADERS = pipe(
 
 const OWNED_ZONE = Option.none<string>();
 
-const web = Effect.gen(function* web() {
-  yield* R2.Bucket("Originals", { name: ORIGINALS_BUCKET });
-  return yield* Website.Vite("Web", {
-    compatibility: COMPATIBILITY,
-    logpush: true,
-    routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
-    observability: {
+const web = Website.Vite("Web", {
+  compatibility: COMPATIBILITY,
+  logpush: true,
+  routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
+  observability: {
+    enabled: true,
+    logs: {
       enabled: true,
-      logs: {
-        enabled: true,
-        invocationLogs: true,
-        persist: true,
-      },
-      traces: { enabled: true, headSamplingRate: TRACE_SAMPLING_RATE, persist: true },
+      invocationLogs: true,
+      persist: true,
     },
-    viteEnvironments: { entry: "ssr", children: ["rsc"] },
-    assets: { headers: ASSET_HEADERS },
-  });
+    traces: { enabled: true, headSamplingRate: TRACE_SAMPLING_RATE, persist: true },
+  },
+  viteEnvironments: { entry: "ssr", children: ["rsc"] },
+  assets: { headers: ASSET_HEADERS },
 });
 
 const ciTelemetry = Effect.gen(function* ciTelemetry() {
