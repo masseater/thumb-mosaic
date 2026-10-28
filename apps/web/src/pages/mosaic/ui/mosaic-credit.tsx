@@ -2,9 +2,10 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 
-import { THUMBNAIL_RIGHTS } from "#/shared/config";
+import { SOURCE_URL, THUMBNAIL_RIGHTS } from "#/shared/config";
 
 const CREDITS = "クレジット";
+const SOURCE = "ソースコード";
 
 const MosaicCredit = ({ slug, seed }: Readonly<{ slug: string; seed: number }>): ReactNode => {
   const params = useMemo(() => ({ slug }), [slug]);
@@ -20,6 +21,14 @@ const MosaicCredit = ({ slug, seed }: Readonly<{ slug: string; seed: number }>):
       >
         {CREDITS}
       </Link>
+      <a
+        href={SOURCE_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2"
+      >
+        {SOURCE}
+      </a>
     </footer>
   );
 };
