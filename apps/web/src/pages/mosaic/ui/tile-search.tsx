@@ -18,7 +18,7 @@ const TileSearch = (): ReactNode => {
     [setQuery],
   );
   return (
-    <div className="relative w-full sm:w-72">
+    <div className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
       <input
         type="search"
         value={query}

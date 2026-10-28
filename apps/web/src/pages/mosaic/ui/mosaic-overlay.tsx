@@ -22,7 +22,7 @@ const MosaicOverlay = ({ visit }: Readonly<{ visit: Visit }>): ReactNode => {
   const arrived = useArrival() === "arrived";
   return (
     <>
-      {arrived && <MosaicToolbar />}
+      {arrived && <MosaicToolbar slug={visit.slug} seed={visit.seed} />}
       {arrived && <MosaicCredit slug={visit.slug} seed={visit.seed} />}
       {Option.isSome(selected) && (
         <TileCard tile={selected.value.tile} crop={selected.value.crop} />
