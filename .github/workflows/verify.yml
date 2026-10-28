@@ -119,10 +119,11 @@ jobs:
             tools/mosaic/.cache/*/vocadb/songs.json
           key: mosaic-pool-${{ github.run_id }}
           restore-keys: mosaic-pool-
-      - if: steps.head.outputs.latest == 'true'
-        run: uv run mosaic pool && uv run mosaic solve
+      - id: build-pool
+        if: steps.head.outputs.latest == 'true'
+        run: uv run mosaic pool
         working-directory: tools/mosaic
-      - if: steps.head.outputs.latest == 'true'
+      - if: always() && steps.build-pool.outcome != 'skipped'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -130,6 +131,9 @@ jobs:
             tools/mosaic/.cache/*/target.png
             tools/mosaic/.cache/*/vocadb/songs.json
           key: mosaic-pool-${{ hashFiles('tools/mosaic/.cache/*/vocadb/songs.json') }}
+      - if: steps.head.outputs.latest == 'true'
+        run: uv run mosaic solve
+        working-directory: tools/mosaic
       - id: tiles
         if: steps.head.outputs.latest == 'true'
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
