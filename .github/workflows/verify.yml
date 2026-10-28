@@ -147,8 +147,13 @@ jobs:
         working-directory: tools/mosaic
       - if: always() && steps.build-pool.outcome != 'skipped'
         run: |
-          shopt -s nullglob
-          tar -cf pool.tar -- "$SLUG"/small "$SLUG"/target.png "$SLUG"/vocadb/songs.json "$SLUG"/thumbs.npz
+          files=()
+          for file in small target.png vocadb/songs.json thumbs.npz; do
+            if [ -e "$SLUG/$file" ]; then
+              files+=("$SLUG/$file")
+            fi
+          done
+          tar -cf pool.tar -- "${files[@]}"
         working-directory: tools/mosaic/.cache
       - if: always() && steps.build-pool.outcome != 'skipped'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
