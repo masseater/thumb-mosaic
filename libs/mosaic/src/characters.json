@@ -3,12 +3,74 @@
     "slug": "miku",
     "name": "初音ミク",
     "vocadbArtistId": 1,
-    "targetUrl": "https://static.vocadb.net/img/Artist/mainOrig/1.png",
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/1.png"
+      }
+    ],
     "cols": 80,
     "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
     "og": {
       "col": 10,
       "row": 38,
+      "cols": 60
+    },
+    "variants": 8
+  },
+  {
+    "slug": "teto",
+    "name": "重音テト",
+    "vocadbArtistId": 140308,
+    "targets": [
+      {
+        "url": "https://kasaneteto.jp/assets/download/illust-logo/official_illust_teto_new.png"
+      }
+    ],
+    "cols": 64,
+    "credit": "イラスト: 線 © TWINDRILL kasaneteto.jp",
+    "og": {
+      "col": 4,
+      "row": 45,
+      "cols": 56
+    },
+    "variants": 8
+  },
+  {
+    "slug": "adachi",
+    "name": "足立レイ",
+    "vocadbArtistId": 134059,
+    "targets": [
+      {
+        "url": "https://www.dropbox.com/s/3awu43mt2hx3a19/%E8%B6%B3%E7%AB%8B%E3%83%AC%E3%82%A4_%E7%AB%8B%E3%81%A1%E7%B5%B5RF_1920_v3.zip?dl=1",
+        "member": "足立レイ_立ち絵RF_1920_v3/デフォルト/デフォルト.png"
+      }
+    ],
+    "cols": 64,
+    "credit": "立ち絵: みさいる © メカニカルガール mechanicalgirl.jp",
+    "og": {
+      "col": 14,
+      "row": 6,
+      "cols": 36
+    },
+    "variants": 8
+  },
+  {
+    "slug": "kotonoha",
+    "name": "琴葉茜・葵",
+    "vocadbArtistId": 129575,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/86363.png"
+      },
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/86365.png"
+      }
+    ],
+    "cols": 60,
+    "credit": "イラスト: A.I.VOICE 琴葉 茜・葵 © AI,Inc.",
+    "og": {
+      "col": 0,
+      "row": 4,
       "cols": 60
     },
     "variants": 8

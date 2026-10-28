@@ -10,7 +10,7 @@ class Character:
     slug: str
     name: str
     vocadb_artist_id: int
-    target_url: str
+    targets: tuple[tuple[str, str | None], ...]
     cols: int
     credit: str
     og: tuple[int, int, int]
@@ -22,7 +22,7 @@ CHARACTERS = {
         slug=c["slug"],
         name=c["name"],
         vocadb_artist_id=c["vocadbArtistId"],
-        target_url=c["targetUrl"],
+        targets=tuple((t["url"], t.get("member")) for t in c["targets"]),
         cols=c["cols"],
         credit=c["credit"],
         og=(c["og"]["col"], c["og"]["row"], c["og"]["cols"]),
