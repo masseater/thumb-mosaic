@@ -72,5 +72,7 @@ const tileCrop = ({
 const slugFile = ({ slug, file }: Readonly<{ slug: string; file: string }>): string =>
   `${BASE_PATH}/${slugPath(slug)}/${file}`;
 
+const mosaicTitle = (slug: string): string => `${slug}.mosaic`;
+
 export type { TileCrop, Visit };
-export { slugFile, tileCrop, variantFile, variantOf };
+export { mosaicTitle, slugFile, tileCrop, variantFile, variantOf };

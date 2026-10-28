@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Array, Effect, Option, pipe } from "effect";
 
-import { slugFile, variantFile } from "#/pages/mosaic/lib/files";
+import { mosaicTitle, slugFile, variantFile } from "#/pages/mosaic/lib/files";
 import type { Visit } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
 
@@ -54,7 +54,7 @@ const overviewImages = (visit: Omit<Visit, "seed" | "choice">): readonly string[
   );
 
 const cardOf = ({ mosaic, slug }: Omit<Visit, "seed" | "choice">): Card => ({
-  title: `${slug}.mosaic`,
+  title: mosaicTitle(slug),
   description: `動画のサムネイルを一枚ずつ並べて描いた${mosaic.character}`,
   image: `${SITE_ORIGIN}${slugFile({ slug, file: mosaic.og })}`,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,

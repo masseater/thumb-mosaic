@@ -1,4 +1,4 @@
-import { FILES_DIR } from "@thumb-mosaic/mosaic";
+import { CHARACTERS, FILES_DIR, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
 import { Website, Workers, providers, state } from "alchemy/Cloudflare";
 import type { InferEnv } from "alchemy/Cloudflare";
@@ -50,6 +50,23 @@ const web = Website.Vite("Web", {
   assets: { headers: ASSET_HEADERS },
 });
 
+const characterFiles = pipe(
+  CHARACTERS,
+  Effect.forEach(({ slug }) =>
+    Workers.Worker(`Files-${slug}`, {
+      name: `${APP_NAME}-files-${slug}`,
+      compatibility: COMPATIBILITY,
+      logpush: true,
+      routes: [{ pattern: `${ZONE}${BASE_PATH}/${slugPath(slug)}/*`, zoneName: ZONE }],
+      assets: {
+        directory: `./public/${slugPath(slug)}`,
+        base: `${BASE_PATH}/${slugPath(slug)}`,
+        headers: ASSET_HEADERS,
+      },
+    }),
+  ),
+);
+
 const ciTelemetry = Effect.gen(function* ciTelemetry() {
   const GITHUB_REPOSITORY = yield* Config.schema(Schema.String, "GITHUB_REPOSITORY").pipe(
     Config.withDefault(""),
@@ -76,6 +93,7 @@ export default Stack(
   { providers: providers(), state: state() },
   Effect.gen(function* stack() {
     const { url } = yield* web;
+    yield* characterFiles;
     yield* Option.match(OWNED_ZONE, {
       onNone: () => Effect.void,
       onSome: (zone) =>
