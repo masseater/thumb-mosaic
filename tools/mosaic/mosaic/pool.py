@@ -13,6 +13,8 @@ from .net import get
 from .vocadb import YOUTUBE_SIZES, songs, thumbnail_candidates
 
 SMALL = (160, 90)
+SMALL_DIR = "small"
+POOL_FILE = "pool.json"
 MIN_WIDTH = 320
 THUMB_TRIES = 2
 THUMB_TIMEOUT = 30
@@ -66,7 +68,7 @@ def _download(song: dict, small_dir: Path, missing: set[int]) -> dict | None:
 
 
 def build_pool(ch: Character, cache: Path, limit: int | None) -> None:
-    small_dir = cache / "small"
+    small_dir = cache / SMALL_DIR
     small_dir.mkdir(parents=True, exist_ok=True)
     thumbs = cache / "thumbs.npz"
     known, missing = _load_thumbs(thumbs)
@@ -87,5 +89,5 @@ def build_pool(ch: Character, cache: Path, limit: int | None) -> None:
         feats.append(f)
     _save_thumbs(thumbs, known, missing)
     np.save(cache / "features.npy", np.array(feats, dtype=np.float32))
-    (cache / "pool.json").write_text(json.dumps(kept, ensure_ascii=False))
+    (cache / POOL_FILE).write_text(json.dumps(kept, ensure_ascii=False))
     print(f"pool songs={len(found)} downloaded={len(entries)} unique={len(kept)}", file=sys.stderr)

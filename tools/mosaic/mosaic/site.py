@@ -15,6 +15,7 @@ from PIL import Image
 from .image import crop_to_tile
 from .net import get
 from .characters import Character
+from .pool import POOL_FILE, SMALL_DIR
 from .solve import variant_path
 
 LEVELS = (("xs", 16, 0), ("s", 48, 16), ("l", 160, 8), ("t", 640, 4))
@@ -50,7 +51,7 @@ def _candidates(url: str, fallback: str) -> list[str]:
     return _youtube(url)
 
 
-def _fetch(url: str, fallback: str, cache: Path) -> Path:
+def _fetch(url: str, fallback: str, cache: Path, small: Path | None) -> Path:
     path = cache / f"{hashlib.sha256(url.encode()).hexdigest()[:24]}.jpg"
     if path.exists():
         return path
@@ -63,7 +64,11 @@ def _fetch(url: str, fallback: str, cache: Path) -> Path:
             im = im.resize(TILE, Image.LANCZOS)
         im.save(path, quality=QUALITY, optimize=True, progressive=True)
         return path
-    raise RuntimeError(f"サムネイルを取れなかった: {url}")
+    if small is None or not small.exists():
+        raise RuntimeError(f"サムネイルを取れなかった: {url}")
+    print(f"site: 縮小サムネで代用 {url}", file=sys.stderr, flush=True)
+    Image.open(small).convert("RGB").resize(TILE, Image.LANCZOS).save(path, quality=QUALITY, optimize=True, progressive=True)
+    return path
 
 
 def _sheet(members: list[tuple[int, Path]], spec: tuple[int, int, int, int, int], out: Path, name: str) -> None:
@@ -110,11 +115,17 @@ def _og(tiles: list[tuple[int, Path]], cols: int, crop: tuple[int, int, int], ou
     card.resize(OG_SIZE, Image.LANCZOS).save(out / OG_FILE, quality=QUALITY, optimize=True, progressive=True)
 
 
-def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
+def _smalls(pool: Path) -> dict[str, Path]:
+    entries = json.loads((pool / POOL_FILE).read_text()) if (pool / POOL_FILE).exists() else []
+    return {e["url"]: pool / SMALL_DIR / f"{e['song']}.jpg" for e in entries}
+
+
+def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> None:
     cache.mkdir(parents=True, exist_ok=True)
     if (public / ch.slug).exists():
         shutil.rmtree(public / ch.slug)
-    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v)) for v in range(ch.variants)]
+    smalls = _smalls(pool)
+    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v), smalls) for v in range(ch.variants)]
     ids: dict[str, int] = {}
     candidates = [[[ids.setdefault(m["urls"][i], len(ids)), m["errors"][i]] for m in variants] for i in range(len(variants[0]["cells"]))]
     (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
@@ -129,13 +140,13 @@ def site(ch: Character, data: Path, cache: Path, public: Path) -> None:
     print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 
-def _variant(ch: Character, data: Path, cache: Path, public: Path) -> dict:
+def _variant(ch: Character, data: Path, cache: Path, public: Path, smalls: dict[str, Path]) -> dict:
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
-        paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache), zip(tiles, assignment["fallbacks"])))
+        paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache, smalls.get(t[0][3])), zip(tiles, assignment["fallbacks"])))
     out = public / version
     out.mkdir(parents=True)
     cells = [t[0] for t in tiles]
