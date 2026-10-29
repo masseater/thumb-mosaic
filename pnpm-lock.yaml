@@ -298,8 +298,8 @@ catalogs:
       specifier: 1.8.1
       version: 1.8.1
     renovate:
-      specifier: 44.182.2
-      version: 44.182.2
+      specifier: 44.183.0
+      version: 44.183.0
     steiger:
       specifier: 0.8.0
       version: 0.8.0
@@ -431,7 +431,7 @@ importers:
         version: 1.89.0
       renovate:
         specifier: catalog:stack
-        version: 44.182.2(supports-color@7.2.0)(typanion@3.14.0)
+        version: 44.183.0(supports-color@7.2.0)(typanion@3.14.0)
       skills:
         specifier: 'catalog:'
         version: 1.7.4
@@ -8325,8 +8325,8 @@ packages:
   remove-accents@0.5.0:
     resolution: {integrity: sha512-8g3/Otx1eJaVD12e31UbJj1YzdtVvzH85HV7t+9MJYk/u3XmkOUJ5Ys9wQrf9PCPK8+xn4ymzqYCiZl6QWKn+A==}
 
-  renovate@44.182.2:
-    resolution: {integrity: sha512-gcCEFB15F/YBzV1Wa+kKChPBX7OKzfW1+7WwKYkXAYqrMCcA/pIkFKsROXccP56tBVbydmXh9fhVGSrau5GXXw==}
+  renovate@44.183.0:
+    resolution: {integrity: sha512-pHE4Elf13pv8VHs9MUXzyDZyDbWQArZQBi7Ps5Mxb7HzoDdyauAt/nwE7f/I1nRsM0eaJKYCQAJD+w1esKrN5A==}
     engines: {node: ^24.11.0, pnpm: ^11.0.0}
     hasBin: true
 
@@ -18308,7 +18308,7 @@ snapshots:
 
   remove-accents@0.5.0: {}
 
-  renovate@44.182.2(supports-color@7.2.0)(typanion@3.14.0):
+  renovate@44.183.0(supports-color@7.2.0)(typanion@3.14.0):
     dependencies:
       '@aws-sdk/client-codecommit': 3.1139.0
       '@aws-sdk/client-ec2': 3.1139.0
