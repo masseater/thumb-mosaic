@@ -9,7 +9,7 @@
 
 - `apps/web` は TanStack Start のアプリで、全ページをプリレンダーし、`alchemy.run.ts` の `Website.StaticSite` でスクリプトの無い静的アセットの Worker として置く。モザイクとクレジットのページは `ssr: false` で、サムネの割り当ては閲覧者のブラウザで決める。サーバーの処理は置かない。
 - キャラごとの画像は `files/<slug>/` を、キャラごとのスクリプトの無い Worker が配る。
-- `vp build` の後に `write-asset-headers.ts` が、出力した HTML のインラインスクリプトのハッシュで CSP を組み、`dist/client/_headers` を書く。
+- `vp run build` は `vp build` の後に `write-asset-headers.ts` を動かす。これは出力した HTML のインラインスクリプトのハッシュで CSP を組み、`dist/client/_headers` を書く。
 
 ## 環境変数
 

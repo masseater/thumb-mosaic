@@ -17,7 +17,7 @@ const COMPATIBILITY = { date: "2026-08-25" } as const;
 const OWNED_ZONE = Option.none<string>();
 
 const web = Website.StaticSite("Web", {
-  command: "vp build && node ./write-asset-headers.ts",
+  command: "vp run build",
   outdir: "dist/client",
   memo: false,
   compatibility: COMPATIBILITY,
