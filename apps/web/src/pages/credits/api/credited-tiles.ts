@@ -3,11 +3,12 @@ import {
   PublishedMosaic,
   Tiles,
   assignVariants,
+  assignedTiles,
   manifestPath,
   slugPath,
   versionPath,
 } from "@thumb-mosaic/mosaic";
-import { Array, Effect, ManagedRuntime, Option, pipe } from "effect";
+import { Effect, ManagedRuntime } from "effect";
 import type { Schema } from "effect";
 import { FetchHttpClient, HttpClient, HttpClientResponse } from "effect/http";
 
@@ -50,16 +51,7 @@ const creditedTiles = ({ slug, seed }: Request): Promise<TileList> =>
         { concurrency: "unbounded" },
       );
       const choice = yield* assignVariants({ candidates, seed });
-      return pipe(
-        choice,
-        Array.map((variant, index) =>
-          pipe(
-            Array.get(lists, variant),
-            Option.flatMap((list) => Array.get(list, index)),
-          ),
-        ),
-        Array.getSomes,
-      );
+      return assignedTiles(choice, lists);
     }).pipe(Effect.orElseSucceed(() => NO_TILES)),
   );
 

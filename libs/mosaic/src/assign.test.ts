@@ -1,7 +1,7 @@
 import { Array, Effect, Option, pipe } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 
-import { assignVariants } from "./assign.ts";
+import { assignVariants, assignedTiles } from "./assign.ts";
 
 const CELLS = 6;
 const VARIANTS = 3;
@@ -66,4 +66,22 @@ describe("assignVariants", () => {
   it("sets aside some of the best fits for each seed", () => expect(bestFit).resolves.toBe(false));
 
   it("returns the same choice for the same seed", () => expect(repeatable).resolves.toBe(true));
+});
+
+describe("assignedTiles", () => {
+  it("takes each cell's tile from the variant chosen for it", () => {
+    expect(
+      assignedTiles(
+        [1, 0, 1],
+        [
+          ["a0", "b0", "c0"],
+          ["a1", "b1", "c1"],
+        ],
+      ),
+    ).toStrictEqual(["a1", "b0", "c1"]);
+  });
+
+  it("skips cells whose variant has no tile", () => {
+    expect(assignedTiles([2, 0], [["a0", "b0"]])).toStrictEqual(["b0"]);
+  });
 });

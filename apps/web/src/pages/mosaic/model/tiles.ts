@@ -1,5 +1,6 @@
 import { useQueries, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
+import { assignedTiles } from "@thumb-mosaic/mosaic";
 import { Array, Option, pipe } from "effect";
 
 import { mosaicQuery, tileChunkQuery, tilesQuery } from "#/pages/mosaic/api/queries";
@@ -19,20 +20,6 @@ const useVisit = (): Visit => {
   return { slug, seed, choice, mosaic: useSuspenseQuery(mosaicQuery(slug)).data };
 };
 
-const visitTiles =
-  (visit: Visit) =>
-  (lists: readonly TileList[]): TileList =>
-    pipe(
-      visit.choice,
-      Array.map((variant, index) =>
-        pipe(
-          Array.get(lists, variant),
-          Option.flatMap((list) => Array.get(list, index)),
-        ),
-      ),
-      Array.getSomes,
-    );
-
 const useTiles = (): TileList => {
   const visit = useVisit();
   const variants = Array.range(FIRST, visit.mosaic.variants.length - NEXT);
@@ -42,7 +29,8 @@ const useTiles = (): TileList => {
       Array.map((variant) => tilesQuery({ ...visit, variant })),
     ),
     combine: (results) =>
-      visitTiles(visit)(
+      assignedTiles(
+        visit.choice,
         pipe(
           results,
           Array.map((result) => result.data ?? NO_TILES),
