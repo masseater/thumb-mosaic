@@ -29,13 +29,13 @@ const useTiles = (): TileList => {
       Array.map((variant) => tilesQuery({ ...visit, variant })),
     ),
     combine: (results) =>
-      assignedTiles(
-        visit.choice,
-        pipe(
+      assignedTiles({
+        choice: visit.choice,
+        lists: pipe(
           results,
           Array.map((result) => result.data ?? NO_TILES),
         ),
-      ),
+      }),
   });
 };
 

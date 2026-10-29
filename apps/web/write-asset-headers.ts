@@ -23,7 +23,9 @@ const encoder = new TextEncoder();
 
 const scriptBodies = (html: string): readonly string[] =>
   pipe(
-    Arr.fromIterable(pipe(html, Str.matchAll(INLINE_SCRIPT))),
+    html,
+    Str.matchAll(INLINE_SCRIPT),
+    Arr.fromIterable,
     Arr.map((match) =>
       pipe(
         Option.fromNullishOr(match.groups),

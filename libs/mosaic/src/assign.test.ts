@@ -75,17 +75,17 @@ const MISSING_VARIANT = 2;
 describe("assignedTiles", () => {
   it("takes each cell's tile from the variant chosen for it", () => {
     expect(
-      assignedTiles(
-        [SECOND_VARIANT, FIRST_VARIANT, SECOND_VARIANT],
-        [
+      assignedTiles({
+        choice: [SECOND_VARIANT, FIRST_VARIANT, SECOND_VARIANT],
+        lists: [
           ["a0", "b0", "c0"],
           ["a1", "b1", "c1"],
         ],
-      ),
+      }),
     ).toStrictEqual(["a1", "b0", "c1"]);
   });
 
   it("skips cells whose variant has no tile", () => {
-    expect(assignedTiles([MISSING_VARIANT, FIRST_VARIANT], [["a0", "b0"]])).toStrictEqual(["b0"]);
+    expect(assignedTiles({ choice: [MISSING_VARIANT, FIRST_VARIANT], lists: [["a0", "b0"]] })).toStrictEqual(["b0"]);
   });
 });

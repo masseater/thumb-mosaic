@@ -140,10 +140,10 @@ const assignVariants = ({
     Random.withSeed(seed),
   );
 
-const assignedTiles = <Tile>(
-  choice: readonly number[],
-  lists: readonly (readonly Tile[])[],
-): readonly Tile[] =>
+const assignedTiles = <Tile>({
+  choice,
+  lists,
+}: Readonly<{ choice: readonly number[]; lists: readonly (readonly Tile[])[] }>): readonly Tile[] =>
   pipe(
     choice,
     Array.map((variant, index) =>

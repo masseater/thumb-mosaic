@@ -53,7 +53,7 @@ const creditedTiles = ({ slug, seed }: Request): Promise<TileList> =>
         { concurrency: "unbounded" },
       );
       const choice = yield* assignVariants({ candidates, seed });
-      return assignedTiles(choice, lists);
+      return assignedTiles({ choice, lists });
     }).pipe(Effect.orElseSucceed(() => NO_TILES)),
   );
 
