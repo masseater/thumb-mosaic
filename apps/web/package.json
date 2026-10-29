@@ -18,6 +18,7 @@
     "destroy": "alchemy destroy"
   },
   "dependencies": {
+    "@effect/platform-node": "catalog:",
     "@effect/atom-react": "catalog:stack",
     "@tanstack/react-devtools": "0.10.13",
     "@tanstack/react-query": "catalog:stack",
