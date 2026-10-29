@@ -6,6 +6,8 @@ import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { mosaicTitle, slugFile, variantFile } from "#/pages/mosaic/lib/files";
 import type { Visit } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
+import { optionalCardMeta } from "#/shared/lib/card";
+import type { Card, Meta } from "#/shared/lib/card";
 
 import { loadVisit } from "./visit";
 import type { Assignment, Loaded } from "./visit";
@@ -13,13 +15,6 @@ import type { Assignment, Loaded } from "./visit";
 const OVERVIEW = 0;
 const BEST_VARIANT = 0;
 const BLOCK_FILE = 2;
-
-interface Card {
-  readonly title: string;
-  readonly description: string;
-  readonly image: string;
-  readonly url: string;
-}
 
 interface Preload extends Assignment {
   readonly images: readonly string[];
@@ -32,11 +27,6 @@ interface PreloadLink {
   readonly href: string;
   readonly fetchPriority: "high";
 }
-
-type Meta =
-  | Readonly<{ title: string }>
-  | Readonly<{ name: string; content: string }>
-  | Readonly<{ property: string; content: string }>;
 
 interface Head {
   links: PreloadLink[];
@@ -103,24 +93,9 @@ const preloadLink = (href: string): PreloadLink => ({
   fetchPriority: "high",
 });
 
-const cardMeta = (card: Card): Meta[] => [
-  { title: card.title },
-  { name: "description", content: card.description },
-  { property: "og:type", content: "website" },
-  { property: "og:title", content: card.title },
-  { property: "og:description", content: card.description },
-  { property: "og:image", content: card.image },
-  { property: "og:url", content: card.url },
-  { name: "twitter:card", content: "summary_large_image" },
-];
-
 const mosaicHead = ({ images, card }: Preview): Head => ({
   links: pipe(images, Array.map(preloadLink)),
-  meta: pipe(
-    card,
-    Option.map(cardMeta),
-    Option.getOrElse((): Meta[] => []),
-  ),
+  meta: optionalCardMeta(card),
 });
 
 export { bundledPreview, loadMosaic, mosaicHead };

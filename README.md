@@ -7,10 +7,16 @@
 
 ## 公開先
 
+- キャラクターの一覧: <https://masseater.dev/mosaic/>
 - 初音ミク: <https://masseater.dev/mosaic/miku>
 - 重音テト: <https://masseater.dev/mosaic/teto>
 - 足立レイ: <https://masseater.dev/mosaic/adachi>
 - 琴葉茜・葵: <https://masseater.dev/mosaic/kotonoha>
+
+各キャラクターの URL の末尾に `/credits` を付けると、使ったサムネイルの動画と作者の一覧が開く。
+画像は各キャラクターの URL の下から、キャラクターごとの Worker が配る。
+CIの実行時間は、<https://thumb-mosaic-ci-telemetry.masseater.workers.dev>が受け取る。
+GitHub Actions の OIDC トークンの無いリクエストには 401 を返す。
 
 ## 作り方
 
