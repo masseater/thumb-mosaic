@@ -6,7 +6,7 @@ import type { Card, Meta } from "#/shared/lib/card";
 
 const creditsCard = (slug: string, mosaic: Card): Card => ({
   title: `${mosaic.title} のクレジット`,
-  description: `${mosaic.title} に使ったサムネイルの動画と作者の一覧`,
+  description: `${mosaic.title} に使用したサムネイルの動画と作者の一覧`,
   image: mosaic.image,
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}/credits`,
 });
