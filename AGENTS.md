@@ -4,13 +4,12 @@
 - `vp run verify` が検査をまとめて流す。pre-push フックと Stop フックも同じ verify を走らせる。
 - `vp check` は oxlint-plugin-decision の判定に `.env` の `OPENROUTER_API_KEY` を使う。
 - テストを 1 つだけ走らせるときは、`apps/web` で `vp test run <ファイル>` を実行する。
-- D1 のスキーマは `*.table.ts` に書き、`apps/web` で `vp run db:generate` を実行してマイグレーションを作る。better-auth のテーブルは `vp run auth:generate` で生成する。
 
 ## 構成
 
-- `apps/web` は TanStack Start のアプリである。`alchemy.run.ts` が D1 と Worker を定義し、Cloudflare にデプロイする。
-- API は Elysia で書く。`src/app/routes/api.$.ts` が `/api/*` を `src/app/server/api.server.ts` のルーターへ渡し、各スライスのルートは `index.server.ts` からそこへ足す。
-- クライアントは `shared/api` で Eden の型から TanStack Query のクエリを作る。SSR 中は `createIsomorphicFn` がルートの `handle` を直接呼ぶ。
+- `apps/web` は TanStack Start のアプリで、全ページをプリレンダーし、`alchemy.run.ts` の `Website.StaticSite` でスクリプトの無い静的アセットの Worker として置く。モザイクとクレジットのページは `ssr: false` で、サムネの割り当ては閲覧者のブラウザで決める。サーバーの処理は置かない。
+- キャラごとの画像は `files/<slug>/` を、キャラごとのスクリプトの無い Worker が配る。
+- `vp build` の後に `write-asset-headers.ts` が、出力した HTML のインラインスクリプトのハッシュで CSP を組み、`dist/client/_headers` を書く。
 
 ## 環境変数
 
