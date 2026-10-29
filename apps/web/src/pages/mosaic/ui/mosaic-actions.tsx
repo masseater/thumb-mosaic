@@ -8,7 +8,7 @@ import { Button } from "#/shared/ui/button";
 
 import { ShareLink } from "./share-link";
 
-const REGENERATE = "作り直す";
+const REGENERATE = "再構成";
 const NO_SEED = {};
 
 const MosaicActions = ({ slug, seed }: Readonly<{ slug: string; seed: number }>): ReactNode => {
