@@ -31,10 +31,7 @@ export default defineConfig({
       srcDirectory: "src/app",
       rsc: { enabled: true },
       prerender: { enabled: true, crawlLinks: false, autoSubfolderIndex: false },
-      pages: [
-        { path: "/" },
-        ...characterPages,
-      ],
+      pages: [{ path: "/" }, ...characterPages],
       spa: {
         enabled: true,
         maskPath: "/404",

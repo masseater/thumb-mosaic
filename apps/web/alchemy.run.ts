@@ -1,8 +1,8 @@
 import { CHARACTERS, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
 import { Workers, providers, state } from "alchemy/Cloudflare";
-import { Build } from "alchemy/Command";
 import type { InferEnv } from "alchemy/Cloudflare";
+import { Build } from "alchemy/Command";
 import { Config, Effect, Option, Schema, pipe } from "effect";
 
 import { APP_NAME, CI_TELEMETRY_AUDIENCE, requireAppPrefix } from "./app-name.ts";
@@ -18,7 +18,11 @@ const COMPATIBILITY = { date: "2026-08-25" } as const;
 const OWNED_ZONE = Option.none<string>();
 
 const web = Effect.gen(function* web() {
-  const site = yield* Build("WebBuild", { command: "vp run build", outdir: "dist/client", memo: false });
+  const site = yield* Build("WebBuild", {
+    command: "vp run build",
+    outdir: "dist/client",
+    memo: false,
+  });
   return yield* Workers.Worker("Web", {
     compatibility: COMPATIBILITY,
     logpush: true,
