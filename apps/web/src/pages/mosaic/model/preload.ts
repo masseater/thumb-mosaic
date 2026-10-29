@@ -1,6 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Array, Effect, Option, pipe } from "effect";
 
+import { bundledMosaic } from "#/pages/mosaic/api/bundled";
+import type { Mosaic } from "#/pages/mosaic/api/queries";
 import { mosaicTitle, slugFile, variantFile } from "#/pages/mosaic/lib/files";
 import type { Visit } from "#/pages/mosaic/lib/files";
 import { BASE_PATH, SITE_ORIGIN } from "#/shared/config";
@@ -60,9 +62,9 @@ const cardOf = ({ mosaic, slug }: Omit<Visit, "seed" | "choice">): Card => ({
   url: `${SITE_ORIGIN}${BASE_PATH}/${slug}`,
 });
 
-const preloadOf = (slug: string, { seed, choice, mosaic }: Loaded): Preload => ({
-  seed,
-  choice,
+type Preview = Pick<Preload, "images" | "card">;
+
+const previewOf = (slug: string, mosaic: Option.Option<Mosaic>): Preview => ({
   images: Option.match(mosaic, {
     onNone: (): readonly string[] => [],
     onSome: (found) => overviewImages({ slug, mosaic: found }),
@@ -71,6 +73,14 @@ const preloadOf = (slug: string, { seed, choice, mosaic }: Loaded): Preload => (
     mosaic,
     Option.map((found) => cardOf({ slug, mosaic: found })),
   ),
+});
+
+const bundledPreview = (slug: string): Preview => previewOf(slug, bundledMosaic(slug));
+
+const preloadOf = (slug: string, { seed, choice, mosaic }: Loaded): Preload => ({
+  seed,
+  choice,
+  ...previewOf(slug, mosaic),
 });
 
 const loadMosaic = ({
@@ -104,17 +114,13 @@ const cardMeta = (card: Card): Meta[] => [
   { name: "twitter:card", content: "summary_large_image" },
 ];
 
-const mosaicHead = (preload: Preload | undefined): Head =>
-  Option.match(Option.fromNullishOr(preload), {
-    onNone: (): Head => ({ links: [], meta: [] }),
-    onSome: ({ images, card }): Head => ({
-      links: pipe(images, Array.map(preloadLink)),
-      meta: pipe(
-        card,
-        Option.map(cardMeta),
-        Option.getOrElse((): Meta[] => []),
-      ),
-    }),
-  });
+const mosaicHead = ({ images, card }: Preview): Head => ({
+  links: pipe(images, Array.map(preloadLink)),
+  meta: pipe(
+    card,
+    Option.map(cardMeta),
+    Option.getOrElse((): Meta[] => []),
+  ),
+});
 
-export { loadMosaic, mosaicHead };
+export { bundledPreview, loadMosaic, mosaicHead };

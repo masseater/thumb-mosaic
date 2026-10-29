@@ -11,15 +11,13 @@ const SECURITY_HEADERS = {
   "Cross-Origin-Resource-Policy": "same-origin",
 } as const;
 
-const DOCUMENT_CACHE_CONTROL = "no-cache, no-store, must-revalidate";
-
 const ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
-const contentSecurityPolicy = (nonce: string): string =>
+const contentSecurityPolicy = (scriptHashes: readonly string[]): string =>
   pipe(
     [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}'`,
+      Arr.join(["script-src 'self'", ...scriptHashes], " "),
       "style-src 'self'",
       "img-src 'self' data: blob:",
       "connect-src 'self'",
@@ -31,4 +29,4 @@ const contentSecurityPolicy = (nonce: string): string =>
     Arr.join("; "),
   );
 
-export { ASSET_CACHE_CONTROL, DOCUMENT_CACHE_CONTROL, SECURITY_HEADERS, contentSecurityPolicy };
+export { ASSET_CACHE_CONTROL, SECURITY_HEADERS, contentSecurityPolicy };

@@ -29,7 +29,6 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "effect": "catalog:stack",
-    "elysia": "catalog:stack",
     "jose": "catalog:",
     "radix-ui": "catalog:stack",
     "react": "19.3.1",

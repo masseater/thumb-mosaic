@@ -1,53 +1,34 @@
-import { CHARACTERS, FILES_DIR, slugPath } from "@thumb-mosaic/mosaic";
+import { CHARACTERS, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
 import { Website, Workers, providers, state } from "alchemy/Cloudflare";
 import type { InferEnv } from "alchemy/Cloudflare";
-import { Array as Arr, Config, Effect, Option, Record as Rec, Schema, pipe } from "effect";
+import { Config, Effect, Option, Schema, pipe } from "effect";
 
 import { APP_NAME, CI_TELEMETRY_AUDIENCE, requireAppPrefix } from "./app-name.ts";
+import { ASSET_HEADERS } from "./asset-headers.ts";
 import { BASE_PATH } from "./base-path.ts";
 import { edgeGuard } from "./edge-guard.ts";
 import { logArchive } from "./log-archive.ts";
-import { ASSET_CACHE_CONTROL, SECURITY_HEADERS } from "./src/shared/config/security-headers.ts";
 
-const TRACE_SAMPLING_RATE = 0.1;
 const ZONE = "masseater.dev";
 
 const COMPATIBILITY = { date: "2026-08-25" } as const;
 
-const ASSET_HEADERS = pipe(
-  [
-    "/*",
-    ...pipe(
-      Rec.toEntries(SECURITY_HEADERS),
-      Arr.map(([name, value]) => `  ${name}: ${value}`),
-    ),
-    `${BASE_PATH}/assets/*`,
-    `  Cache-Control: ${ASSET_CACHE_CONTROL}`,
-    `${BASE_PATH}/${FILES_DIR}/:slug/:version/*`,
-    `  Cache-Control: ${ASSET_CACHE_CONTROL}`,
-    "",
-  ],
-  Arr.join("\n"),
-);
-
 const OWNED_ZONE = Option.none<string>();
 
-const web = Website.Vite("Web", {
+const web = Website.StaticSite("Web", {
+  command: "vp build && node ./write-asset-headers.ts",
+  outdir: "dist/client",
+  memo: false,
   compatibility: COMPATIBILITY,
   logpush: true,
   routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
-  observability: {
-    enabled: true,
-    logs: {
-      enabled: true,
-      invocationLogs: true,
-      persist: true,
-    },
-    traces: { enabled: true, headSamplingRate: TRACE_SAMPLING_RATE, persist: true },
+  assets: {
+    base: BASE_PATH,
+    htmlHandling: "auto-trailing-slash",
+    notFoundHandling: "404-page",
   },
-  viteEnvironments: { entry: "ssr", children: ["rsc"] },
-  assets: { headers: ASSET_HEADERS },
+  dev: { command: "vp dev" },
 });
 
 const characterFiles = pipe(

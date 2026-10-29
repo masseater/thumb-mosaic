@@ -3,7 +3,8 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import rsc from "@vitejs/plugin-rsc";
-import { Option } from "effect";
+import { CHARACTERS } from "@thumb-mosaic/mosaic";
+import { Array as Arr, Option, pipe } from "effect";
 import { defineConfig } from "vite-plus";
 
 import { BASE_PATH } from "./base-path.ts";
@@ -24,7 +25,19 @@ export default defineConfig({
     tanstackStart({
       srcDirectory: "src/app",
       rsc: { enabled: true },
-      pages: [{ path: "/" }],
+      prerender: { enabled: true, crawlLinks: false, autoSubfolderIndex: false },
+      pages: [
+        { path: "/" },
+        ...pipe(
+          CHARACTERS,
+          Arr.flatMap(({ slug }) => [{ path: `/${slug}` }, { path: `/${slug}/credits` }]),
+        ),
+      ],
+      spa: {
+        enabled: true,
+        maskPath: "/404",
+        prerender: { outputPath: "/404", crawlLinks: false },
+      },
       sitemap: Option.match(SEARCH_INDEX_ORIGIN, {
         onNone: () => ({ enabled: false }),
         onSome: (host) => ({ host, outputPath: SITEMAP_FILE }),
