@@ -11,8 +11,8 @@ import {
 import { seedOf } from "#/shared/lib/seed";
 
 const Route = createFileRoute("/$slug")({
-  ssr: false,
   validateSearch: mosaicSearch,
+  ssr: false,
   shouldReload: false,
   loader: ({ context, params, location }) =>
     loadMosaic({

@@ -1,14 +1,19 @@
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { CHARACTERS } from "@thumb-mosaic/mosaic";
 import viteReact from "@vitejs/plugin-react";
 import rsc from "@vitejs/plugin-rsc";
-import { CHARACTERS } from "@thumb-mosaic/mosaic";
 import { Array as Arr, Option, pipe } from "effect";
 import { defineConfig } from "vite-plus";
 
 import { BASE_PATH } from "./base-path.ts";
 import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/search.ts";
+
+const characterPages = pipe(
+  CHARACTERS,
+  Arr.flatMap(({ slug }) => [{ path: `/${slug}` }, { path: `/${slug}/credits` }]),
+);
 
 export default defineConfig({
   base: `${BASE_PATH}/`,
@@ -28,10 +33,7 @@ export default defineConfig({
       prerender: { enabled: true, crawlLinks: false, autoSubfolderIndex: false },
       pages: [
         { path: "/" },
-        ...pipe(
-          CHARACTERS,
-          Arr.flatMap(({ slug }) => [{ path: `/${slug}` }, { path: `/${slug}/credits` }]),
-        ),
+        ...characterPages,
       ],
       spa: {
         enabled: true,

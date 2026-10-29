@@ -68,11 +68,15 @@ describe("assignVariants", () => {
   it("returns the same choice for the same seed", () => expect(repeatable).resolves.toBe(true));
 });
 
+const FIRST_VARIANT = 0;
+const SECOND_VARIANT = 1;
+const MISSING_VARIANT = 2;
+
 describe("assignedTiles", () => {
   it("takes each cell's tile from the variant chosen for it", () => {
     expect(
       assignedTiles(
-        [1, 0, 1],
+        [SECOND_VARIANT, FIRST_VARIANT, SECOND_VARIANT],
         [
           ["a0", "b0", "c0"],
           ["a1", "b1", "c1"],
@@ -82,6 +86,6 @@ describe("assignedTiles", () => {
   });
 
   it("skips cells whose variant has no tile", () => {
-    expect(assignedTiles([2, 0], [["a0", "b0"]])).toStrictEqual(["b0"]);
+    expect(assignedTiles([MISSING_VARIANT, FIRST_VARIANT], [["a0", "b0"]])).toStrictEqual(["b0"]);
   });
 });

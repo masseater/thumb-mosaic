@@ -11,10 +11,12 @@ import {
 import { Effect, ManagedRuntime } from "effect";
 import type { Schema } from "effect";
 import { FetchHttpClient, HttpClient, HttpClientResponse } from "effect/http";
+import type { HttpClientError } from "effect/http";
 
 import { BASE_PATH } from "#/shared/config";
 
 type TileList = typeof Tiles.Type;
+type FetchError = HttpClientError.HttpClientError | Schema.SchemaError;
 
 interface Request {
   readonly slug: string;
@@ -26,8 +28,8 @@ const NO_TILES: TileList = [];
 const runtime = ManagedRuntime.make(FetchHttpClient.layer);
 
 const fetchJson =
-  <S extends Schema.Top>(schema: S) =>
-  (path: string) =>
+  <Model extends Schema.Decoder<unknown>>(schema: Model) =>
+  (path: string): Effect.Effect<Model["Type"], FetchError, HttpClient.HttpClient> =>
     HttpClient.get(`${BASE_PATH}/${path}`).pipe(
       Effect.flatMap(HttpClientResponse.filterStatusOk),
       Effect.flatMap(HttpClientResponse.schemaBodyJson(schema)),
