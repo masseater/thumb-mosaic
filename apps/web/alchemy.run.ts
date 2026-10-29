@@ -1,6 +1,7 @@
 import { CHARACTERS, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
-import { Website, Workers, providers, state } from "alchemy/Cloudflare";
+import { Workers, providers, state } from "alchemy/Cloudflare";
+import { Build } from "alchemy/Command";
 import type { InferEnv } from "alchemy/Cloudflare";
 import { Config, Effect, Option, Schema, pipe } from "effect";
 
@@ -16,19 +17,19 @@ const COMPATIBILITY = { date: "2026-08-25" } as const;
 
 const OWNED_ZONE = Option.none<string>();
 
-const web = Website.StaticSite("Web", {
-  command: "vp run build",
-  outdir: "dist/client",
-  memo: false,
-  compatibility: COMPATIBILITY,
-  logpush: true,
-  routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
-  assets: {
-    base: BASE_PATH,
-    htmlHandling: "auto-trailing-slash",
-    notFoundHandling: "404-page",
-  },
-  dev: { command: "vp dev" },
+const web = Effect.gen(function* web() {
+  const site = yield* Build("WebBuild", { command: "vp run build", outdir: "dist/client", memo: false });
+  return yield* Workers.Worker("Web", {
+    compatibility: COMPATIBILITY,
+    logpush: true,
+    routes: [{ pattern: `${ZONE}${BASE_PATH}*`, zoneName: ZONE }],
+    assets: {
+      directory: site.outdir,
+      base: BASE_PATH,
+      htmlHandling: "auto-trailing-slash",
+      notFoundHandling: "404-page",
+    },
+  });
 });
 
 const characterFiles = pipe(

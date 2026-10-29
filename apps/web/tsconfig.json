@@ -13,6 +13,10 @@
         "name": "@effect/language-service",
         "allowedUnstableApis": [
           "@effect/atom-react",
+          "@effect/platform-node/NodeRuntime#runMain",
+          "@effect/platform-node/NodeServices#layer",
+          "effect/FileSystem#FileSystem",
+          "effect/Path#Path",
           "effect/reactivity/Atom",
           "effect/http/FetchHttpClient#layer",
           "effect/http/HttpClient#get",
