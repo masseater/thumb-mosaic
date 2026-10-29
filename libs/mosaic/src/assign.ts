@@ -140,4 +140,19 @@ const assignVariants = ({
     Random.withSeed(seed),
   );
 
-export { assignVariants };
+const assignedTiles = <Tile>({
+  choice,
+  lists,
+}: Readonly<{ choice: readonly number[]; lists: readonly (readonly Tile[])[] }>): readonly Tile[] =>
+  pipe(
+    choice,
+    Array.map((variant, index) =>
+      pipe(
+        Array.get(lists, variant),
+        Option.flatMap((list) => Array.get(list, index)),
+      ),
+    ),
+    Array.getSomes,
+  );
+
+export { assignVariants, assignedTiles };

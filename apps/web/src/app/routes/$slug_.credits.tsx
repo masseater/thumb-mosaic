@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CreditsPage, bundledTiles, creditsSearch } from "#/pages/credits";
+import { CreditsPage, creditedTiles, creditsSearch } from "#/pages/credits";
 
 const Route = createFileRoute("/$slug_/credits")({
   validateSearch: creditsSearch,
+  ssr: false,
   loaderDeps: ({ search }) => search,
-  loader: ({ params, deps }) => bundledTiles({ data: { slug: params.slug, seed: deps.seed } }),
+  loader: ({ params, deps }) => creditedTiles({ slug: params.slug, seed: deps.seed }),
   component: CreditsPage,
 });
 

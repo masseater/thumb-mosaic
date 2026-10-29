@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "alchemy dev",
+    "build": "vp build && node ./write-asset-headers.ts",
     "typecheck": "tsc",
     "test": "vp test run --passWithNoTests",
     "steiger": "steiger ./src",
@@ -18,6 +19,7 @@
   },
   "dependencies": {
     "@effect/atom-react": "catalog:stack",
+    "@effect/platform-node": "catalog:",
     "@tanstack/react-devtools": "0.10.13",
     "@tanstack/react-query": "catalog:stack",
     "@tanstack/react-query-devtools": "catalog:",
@@ -29,7 +31,6 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "effect": "catalog:stack",
-    "elysia": "catalog:stack",
     "jose": "catalog:",
     "radix-ui": "catalog:stack",
     "react": "19.3.1",
