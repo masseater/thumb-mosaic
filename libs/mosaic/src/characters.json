@@ -74,5 +74,59 @@
       "cols": 60
     },
     "variants": 8
+  },
+  {
+    "slug": "yukari",
+    "name": "結月ゆかり",
+    "vocadbArtistId": 134288,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/134288.png"
+      }
+    ],
+    "cols": 80,
+    "credit": "イラスト: 文倉十 © VOCALOMAKETS",
+    "og": {
+      "col": 10,
+      "row": 10,
+      "cols": 60
+    },
+    "variants": 8
+  },
+  {
+    "slug": "ia",
+    "name": "IA",
+    "vocadbArtistId": 504,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/504.png"
+      }
+    ],
+    "cols": 80,
+    "credit": "イラスト: 赤坂アカ © 1st PLACE Co., Ltd.",
+    "og": {
+      "col": 12,
+      "row": 12,
+      "cols": 60
+    },
+    "variants": 8
+  },
+  {
+    "slug": "kafu",
+    "name": "可不",
+    "vocadbArtistId": 83928,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/83928.png"
+      }
+    ],
+    "cols": 100,
+    "credit": "イラスト: PALOW. © KAMITSUBAKI STUDIO",
+    "og": {
+      "col": 22,
+      "row": 22,
+      "cols": 60
+    },
+    "variants": 8
   }
 ]
