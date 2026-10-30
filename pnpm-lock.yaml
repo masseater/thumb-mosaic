@@ -298,8 +298,8 @@ catalogs:
       specifier: 1.8.1
       version: 1.8.1
     renovate:
-      specifier: 44.186.3
-      version: 44.186.3
+      specifier: 44.186.6
+      version: 44.186.6
     steiger:
       specifier: 0.8.0
       version: 0.8.0
@@ -431,7 +431,7 @@ importers:
         version: 1.89.0
       renovate:
         specifier: catalog:stack
-        version: 44.186.3(supports-color@7.2.0)(typanion@3.14.0)
+        version: 44.186.6(supports-color@7.2.0)(typanion@3.14.0)
       skills:
         specifier: 'catalog:'
         version: 1.7.4
@@ -3699,8 +3699,8 @@ packages:
     peerDependencies:
       '@redis/client': ^6.2.1
 
-  '@renovatebot/base-image@13.143.0':
-    resolution: {integrity: sha512-//BCpaCkCL50tusvVEyh97AisxOTj2SRDZoOHi6g4NGL9Lf7/DgaoEnjv1ZVtUSwSN5JjYnft2X792DSaUA1+g==}
+  '@renovatebot/base-image@13.143.2':
+    resolution: {integrity: sha512-kW6WZpBCm2tuPZas2pnMl6mjM4PZaY+Oo9Y1XetDC+IHi9+IOUkqvS5ZITF2N47GAMjvqPXF8V4xG2NnbScvfQ==}
     engines: {node: '>=24.10.0'}
     peerDependencies:
       zod: ^4.6.6
@@ -5767,8 +5767,8 @@ packages:
     resolution: {integrity: sha512-ixNtAJndqh173VQ4KodSdJEI6nuioBWI0V1ITNKhZZsO0pEMoDxz539T4FTTbSZ/xIOSuDnzxLVRqBVSvPNE2g==}
     engines: {node: '>=18.0'}
 
-  cronstrue@3.35.0:
-    resolution: {integrity: sha512-y0h5te+3P4UKik6VNDr7dYgpZ3XdGVW9+4y1Ef75BHG582t2oYI8dXeSBzsD1jyXYMJxv1ANrOWdSfg/UE470w==}
+  cronstrue@3.36.0:
+    resolution: {integrity: sha512-uk3Wi80f8SNqrXmreyBAP1E4PudFU+9wg91+v+6ZYeb5a2ajR9rRwuNB1Bt/bjgh7hQM9+6FgyTUz2NDA3uKaw==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -8318,8 +8318,8 @@ packages:
   remove-accents@0.5.0:
     resolution: {integrity: sha512-8g3/Otx1eJaVD12e31UbJj1YzdtVvzH85HV7t+9MJYk/u3XmkOUJ5Ys9wQrf9PCPK8+xn4ymzqYCiZl6QWKn+A==}
 
-  renovate@44.186.3:
-    resolution: {integrity: sha512-jN1eCi6t+4bR4BxnjjcMYtNEB5J8n4bZoFFiaN3cycNinFxksgw0a9j8NMoVeb33MabJegONf/wsXGRweCgHPQ==}
+  renovate@44.186.6:
+    resolution: {integrity: sha512-ssgDe2tAahm+rVl4NraNwq1BVTpbbN8DmYH97iAtiaPzn64yYFIXgdGPmeWk4D4YmWpg1ilTB2xBYZF7XbCzSQ==}
     engines: {node: ^24.11.0, pnpm: ^11.0.0}
     hasBin: true
 
@@ -12672,7 +12672,7 @@ snapshots:
     dependencies:
       '@redis/client': 6.2.1(@opentelemetry/api@1.9.1)
 
-  '@renovatebot/base-image@13.143.0(zod@4.6.7)':
+  '@renovatebot/base-image@13.143.2(zod@4.6.7)':
     dependencies:
       '@containerbase/base': 14.53.0(zod@4.6.7)
     optionalDependencies:
@@ -15145,7 +15145,7 @@ snapshots:
 
   croner@10.0.1: {}
 
-  cronstrue@3.35.0: {}
+  cronstrue@3.36.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
@@ -18290,7 +18290,7 @@ snapshots:
 
   remove-accents@0.5.0: {}
 
-  renovate@44.186.3(supports-color@7.2.0)(typanion@3.14.0):
+  renovate@44.186.6(supports-color@7.2.0)(typanion@3.14.0):
     dependencies:
       '@aws-sdk/client-codecommit': 3.1139.0
       '@aws-sdk/client-ec2': 3.1139.0
@@ -18323,7 +18323,7 @@ snapshots:
       '@pnpm/parse-overrides': 1001.0.4
       '@qnighy/marshal': 0.1.3
       '@redis/client': 6.3.0(@opentelemetry/api@1.9.1)
-      '@renovatebot/base-image': 13.143.0(zod@4.6.7)
+      '@renovatebot/base-image': 13.143.2(zod@4.6.7)
       '@renovatebot/detect-tools': 4.0.23
       '@renovatebot/good-enough-parser': 2.0.1
       '@renovatebot/osv-offline': 3.0.12(supports-color@7.2.0)
@@ -18346,7 +18346,7 @@ snapshots:
       commander: 15.0.0
       common-tags: 1.8.2
       croner: 10.0.1
-      cronstrue: 3.35.0
+      cronstrue: 3.36.0
       deepmerge: 4.3.1
       dequal: 2.0.3
       detect-indent: 7.0.2
