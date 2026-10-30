@@ -12,6 +12,9 @@
 - 重音テト: <https://masseater.dev/mosaic/teto>
 - 足立レイ: <https://masseater.dev/mosaic/adachi>
 - 琴葉茜・葵: <https://masseater.dev/mosaic/kotonoha>
+- 結月ゆかり: <https://masseater.dev/mosaic/yukari>
+- IA: <https://masseater.dev/mosaic/ia>
+- 可不: <https://masseater.dev/mosaic/kafu>
 
 各キャラクターの URL に `/credits` を付けると、使用したサムネイルの動画と作者の一覧を表示する。
 画像は、キャラクターごとの Worker が各キャラクターの URL の配下で配信する。
@@ -60,3 +63,6 @@ main への push のほかに毎日 1 回デプロイし、取ったサムネイ
 重音テトのイラストは線によるもので、[重音テト公式サイト](https://kasaneteto.jp/illust-logo/)の配布素材を[キャラクター利用規約](https://kasaneteto.jp/guideline/character.html)の範囲で使っている。
 足立レイの立ち絵はみさいるによるもので、[メカニカルガールの公式サイト](https://mechanicalgirl.jp/adachi-rei/)の配布素材を[キャラクター使用ガイドライン](https://mechanicalgirl.jp/guidelines)の範囲で使っている。
 琴葉茜・葵は A.I.VOICE 琴葉 茜・葵の公式の立ち絵を 2 枚並べて元の絵にしている。権利は株式会社エーアイにある。
+結月ゆかりのイラストは文倉十によるもので、VOCALOMAKETS のキャラクター使用ガイドラインの非商用の範囲で使っている。
+IA のイラストは赤坂アカによるもので、権利は 1st PLACE 株式会社にある。[1st PLACE 二次創作ガイドライン](https://1stplace.co.jp/wp/wp-content/uploads/2021/11/Guideline.pdf)の、個人の非商用の範囲で使っている。
+可不のイラストは PALOW. によるもので、権利は KAMITSUBAKI STUDIO にある。[KAMITSUBAKI STUDIO の二次創作ガイドライン](https://kamitsubaki.jp/guideline/)の、個人の非商用の範囲で使っている。
