@@ -1,6 +1,6 @@
 import { CHARACTERS, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
-import { Rum, Workers, providers, state } from "alchemy/Cloudflare";
+import { Workers, providers, state } from "alchemy/Cloudflare";
 import type { InferEnv } from "alchemy/Cloudflare";
 import { Build } from "alchemy/Command";
 import { Config, Effect, Option, Schema, pipe } from "effect";
@@ -14,14 +14,14 @@ import { logArchive } from "./log-archive.ts";
 const ZONE = "masseater.dev";
 
 const COMPATIBILITY = { date: "2026-08-25" } as const;
+const CF_BEACON_TOKEN = "021b4961f3fd419297b186136a5a8a0a";
 
 const OWNED_ZONE = Option.none<string>();
 
 const web = Effect.gen(function* web() {
-  const { siteToken } = yield* Rum.Site("WebAnalytics", { host: ZONE });
   const site = yield* Build("WebBuild", {
     command: "vp run build",
-    env: { VITE_CF_BEACON_TOKEN: siteToken },
+    env: { VITE_CF_BEACON_TOKEN: CF_BEACON_TOKEN },
     outdir: "dist/client",
     memo: false,
   });
