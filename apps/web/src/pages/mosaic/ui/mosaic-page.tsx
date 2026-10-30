@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
+import { Option } from "effect";
 import type { ReactNode } from "react";
 
 import { mosaicQuery } from "#/pages/mosaic/api/queries";
 
+import { MosaicCredit } from "./mosaic-credit";
 import { MosaicLoading } from "./mosaic-loading";
 import { MosaicStatus } from "./mosaic-status";
 import { MosaicView } from "./mosaic-view";
@@ -25,6 +27,7 @@ const MosaicPage = (): ReactNode => {
       {query.status === "success" && (
         <MosaicView slug={slug} seed={seed} choice={choice} mosaic={query.data} />
       )}
+      <MosaicCredit slug={slug} seed={Option.some(seed)} />
     </main>
   );
 };
