@@ -46,6 +46,8 @@ catalog:
   simple-icons: 16.36.0
 catalogs:
   stack:
+    "@alchemy.run/cloudflare": 2.0.0-beta.84
+    "@alchemy.run/fly": 2.0.0-beta.84
     "@distilled.cloud/cloudflare": 1.0.0-rc.17
     "@effect/atom-react": 4.0.6
     "@effect/tsgo": 0.59.0
@@ -64,19 +66,14 @@ catalogs:
 overrides:
   effect: "catalog:stack"
   "@effect/platform-node-shared": 4.0.6
-  "@effect/sql-d1": 4.0.6
-  "@effect/sql-sqlite-do": 4.0.6
   "@effect/vitest": 4.0.6
   vite@*: "catalog:"
   eslint-plugin-react-hooks>zod-validation-error: ^5.0.0
-  "@hono/node-server@<1.19.15": ^2.0.0
-  hono@<4.13.7: ^4.13.7
   http-cache-semantics@<=4.2.0: ^4.3.0
   lodash@<=4.17.23: ^4.18.1
   seroval@<=1.6.2: ^1.6.11
   shell-quote@>=1.8.4 <1.11.0: ^1.11.0
   source-map-js@>=1.0.0 <1.2.2: ^1.2.2
-  valibot@<=1.4.1: ^1.4.2
   katex@>=0.11.0 <0.18.2: ^0.19.0
   smol-toml@<=1.8.0: ^1.9.0
   "@modelcontextprotocol/server@>=2.0.0 <2.3.0": ^2.3.0
