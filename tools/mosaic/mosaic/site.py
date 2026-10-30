@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 from pathlib import Path
 
 from PIL import Image
@@ -30,6 +31,8 @@ OG_TILE = (64, 36)
 OG_FILE = "og.jpg"
 CANDIDATES = "candidates.json"
 OG_IMAGE = re.compile(r'property="og:image" content="([^"]+)"')
+NICO_OG = "niconico-og.json"
+NICO_PAGES = threading.Semaphore(4)
 
 
 def _youtube(url: str) -> list[str]:
@@ -37,25 +40,37 @@ def _youtube(url: str) -> list[str]:
     return [f"https://i.ytimg.com/vi/{video}/{size}.jpg" for size in YOUTUBE_SIZES]
 
 
-def _niconico(url: str, fallback: str) -> list[str]:
-    page = get(url)
-    found = OG_IMAGE.search(page.decode("utf-8", "replace")) if page else None
+def _niconico_og(url: str) -> str | None:
+    with NICO_PAGES:
+        page = get(url)
+    if page is None:
+        return None
+    found = OG_IMAGE.search(page.decode("utf-8", "replace"))
     if found is None or "s=blur" in found.group(1):
-        return [fallback]
-    return [html.unescape(found.group(1)), fallback]
+        return ""
+    return html.unescape(found.group(1))
 
 
-def _candidates(url: str, fallback: str) -> list[str]:
+def _niconico(url: str, fallback: str, og: dict[str, str]) -> list[str]:
+    if url not in og:
+        found = _niconico_og(url)
+        if found is None:
+            return [fallback]
+        og[url] = found
+    return [og[url], fallback] if og[url] else [fallback]
+
+
+def _candidates(url: str, fallback: str, og: dict[str, str]) -> list[str]:
     if fallback:
-        return _niconico(url, fallback)
+        return _niconico(url, fallback, og)
     return _youtube(url)
 
 
-def _fetch(url: str, fallback: str, cache: Path, small: Path | None) -> Path:
+def _fetch(url: str, fallback: str, cache: Path, small: Path | None, og: dict[str, str]) -> Path:
     path = cache / f"{hashlib.sha256(url.encode()).hexdigest()[:24]}.jpg"
     if path.exists():
         return path
-    for candidate in _candidates(url, fallback):
+    for candidate in _candidates(url, fallback, og):
         raw = get(candidate)
         if raw is None:
             continue
@@ -125,7 +140,12 @@ def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> No
     if (public / ch.slug).exists():
         shutil.rmtree(public / ch.slug)
     smalls = _smalls(pool)
-    variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v), smalls) for v in range(ch.variants)]
+    og_path = pool / NICO_OG
+    og = json.loads(og_path.read_text()) if og_path.exists() else {}
+    try:
+        variants = [_variant(ch, variant_path(data, v), cache, public / ch.slug / str(v), smalls, og) for v in range(ch.variants)]
+    finally:
+        og_path.write_text(json.dumps(og, separators=(",", ":")))
     ids: dict[str, int] = {}
     candidates = [[[ids.setdefault(m["urls"][i], len(ids)), m["errors"][i]] for m in variants] for i in range(len(variants[0]["cells"]))]
     (public / ch.slug / CANDIDATES).write_text(json.dumps(candidates, separators=(",", ":")))
@@ -140,13 +160,13 @@ def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> No
     print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 
-def _variant(ch: Character, data: Path, cache: Path, public: Path, smalls: dict[str, Path]) -> dict:
+def _variant(ch: Character, data: Path, cache: Path, public: Path, smalls: dict[str, Path], og: dict[str, str]) -> dict:
     raw = data.read_bytes()
     assignment = json.loads(raw)
     version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
-        paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache, smalls.get(t[0][3])), zip(tiles, assignment["fallbacks"])))
+        paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache, smalls.get(t[0][3]), og), zip(tiles, assignment["fallbacks"])))
     out = public / version
     out.mkdir(parents=True)
     cells = [t[0] for t in tiles]

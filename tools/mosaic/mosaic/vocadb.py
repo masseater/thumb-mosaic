@@ -1,13 +1,13 @@
-import concurrent.futures as cf
 import json
 import sys
+import time
 from collections.abc import Iterator
 from pathlib import Path
 
 from .net import get
 
 PAGE = 100
-WORKERS = 4
+INTERVAL = 1.0
 API = "https://vocadb.net/api/songs"
 
 
@@ -17,6 +17,7 @@ def _url(artist_id: int, start: int, sort: str) -> str:
 
 def _page(artist_id: int, start: int, sort: str) -> dict:
     url = _url(artist_id, start, sort)
+    time.sleep(INTERVAL)
     raw = get(url)
     if raw is None:
         raise RuntimeError(f"VocaDB の一覧を取れなかった: {url}")
@@ -27,10 +28,9 @@ def _page(artist_id: int, start: int, sort: str) -> dict:
 def _all(artist_id: int, total: int, sort: str) -> Iterator[dict]:
     first = _page(artist_id, 0, sort)
     count = min(total, first["totalCount"])
-    with cf.ThreadPoolExecutor(WORKERS) as ex:
-        rest = ex.map(lambda start: _page(artist_id, start, sort), range(PAGE, count, PAGE))
-        for body in [first, *rest]:
-            yield from body["items"]
+    yield from first["items"]
+    for start in range(PAGE, count, PAGE):
+        yield from _page(artist_id, start, sort)["items"]
 
 
 def _added_since(artist_id: int, known: set[int]) -> Iterator[dict]:
