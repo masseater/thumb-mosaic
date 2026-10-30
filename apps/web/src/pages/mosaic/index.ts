@@ -1,4 +1,4 @@
 export { bundledPreview, loadMosaic, mosaicHead } from "./model/preload";
-export { MosaicLoading } from "./ui/mosaic-loading";
 export { MosaicPage } from "./ui/mosaic-page";
+export { MosaicPending } from "./ui/mosaic-pending";
 export { mosaicSearch } from "./model/search";

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
-  MosaicLoading,
   MosaicPage,
+  MosaicPending,
   bundledPreview,
   loadMosaic,
   mosaicHead,
@@ -21,7 +21,7 @@ const Route = createFileRoute("/$slug")({
       seed: seedOf(location.search),
     }),
   head: ({ params, loaderData }) => mosaicHead(loaderData ?? bundledPreview(params.slug)),
-  pendingComponent: MosaicLoading,
+  pendingComponent: MosaicPending,
   component: MosaicPage,
 });
 
