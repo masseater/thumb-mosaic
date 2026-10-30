@@ -55,7 +55,7 @@ catalogs:
     "@tanstack/react-start": 1.169.4
     alchemy: 2.0.0-beta.84
     effect: 4.0.6
-    fallow: 3.36.0
+    fallow: 3.37.0
     radix-ui: 1.8.1
     renovate: 44.188.4
     steiger: 0.8.0
