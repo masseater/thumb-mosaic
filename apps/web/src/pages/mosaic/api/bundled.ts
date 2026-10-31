@@ -13,7 +13,7 @@ const bundledMosaic = createIsomorphicFn()
   .server((slug: string): Option.Option<Mosaic> =>
     Option.flatMap(
       Record.get(
-        import.meta.glob<unknown>("../../../../public/files/*.json", {
+        import.meta.glob<unknown>("../../../../public/files/*/manifest.json", {
           eager: true,
           import: "default",
         }),
