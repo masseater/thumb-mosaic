@@ -19,6 +19,7 @@ const characterPages = pipe(
 
 export default defineConfig({
   base: `${BASE_PATH}/`,
+  build: { copyPublicDir: false },
   resolve: { tsconfigPaths: true },
   test: {
     projects: [

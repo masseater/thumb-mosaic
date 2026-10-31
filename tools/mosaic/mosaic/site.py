@@ -30,6 +30,7 @@ OG_SIZE = (1200, 630)
 OG_TILE = (64, 36)
 OG_FILE = "og.jpg"
 CANDIDATES = "candidates.json"
+MANIFEST = "manifest.json"
 OG_IMAGE = re.compile(r'property="og:image" content="([^"]+)"')
 NICO_OG = "niconico-og.json"
 NICO_PAGES = threading.Semaphore(4)
@@ -156,7 +157,7 @@ def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> No
         "candidates": CANDIDATES,
         "variants": [{"version": m["version"], "meanDelta": m["meanDelta"]} for m in variants],
     }
-    (public / f"{ch.slug}.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
+    (public / ch.slug / MANIFEST).write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
     print(f"site {ch.slug} variants={len(variants)} thumbnails={len(ids)}", file=sys.stderr)
 
 

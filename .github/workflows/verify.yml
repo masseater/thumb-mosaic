@@ -166,9 +166,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mosaic-${{ matrix.slug }}
-          path: |
-            apps/web/public/files/${{ matrix.slug }}/
-            apps/web/public/files/${{ matrix.slug }}.json
+          path: apps/web/public/files/
           if-no-files-found: error
           retention-days: 1
 

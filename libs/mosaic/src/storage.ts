@@ -6,9 +6,9 @@ interface VariantRef {
   readonly version: string;
 }
 
-const manifestPath = (slug: string): string => `${FILES_DIR}/${slug}.json`;
-
 const slugPath = (slug: string): string => `${FILES_DIR}/${slug}`;
+
+const manifestPath = (slug: string): string => `${slugPath(slug)}/manifest.json`;
 
 const versionPath = ({ slug, variant, version }: VariantRef): string =>
   `${slugPath(slug)}/${variant}/${version}`;
