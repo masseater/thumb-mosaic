@@ -128,5 +128,492 @@
       "cols": 60
     },
     "variants": 8
+  },
+  {
+    "slug": "luka",
+    "name": "巡音ルカ",
+    "vocadbArtistId": 2,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/2.png"
+      }
+    ],
+    "cols": 41,
+    "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
+    "og": {
+      "col": 2,
+      "row": 18,
+      "cols": 37
+    },
+    "variants": 8
+  },
+  {
+    "slug": "rin",
+    "name": "鏡音リン",
+    "vocadbArtistId": 14,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/14.png"
+      }
+    ],
+    "cols": 63,
+    "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
+    "og": {
+      "col": 6,
+      "row": 30,
+      "cols": 49
+    },
+    "variants": 8
+  },
+  {
+    "slug": "gumi",
+    "name": "GUMI",
+    "vocadbArtistId": 3,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/3.png"
+      }
+    ],
+    "cols": 84,
+    "credit": "イラスト: ゆうきまさみ © INTERNET Co., Ltd.",
+    "og": {
+      "col": 5,
+      "row": 17,
+      "cols": 75
+    },
+    "variants": 8
+  },
+  {
+    "slug": "len",
+    "name": "鏡音レン",
+    "vocadbArtistId": 15,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/15.png"
+      }
+    ],
+    "cols": 68,
+    "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
+    "og": {
+      "col": 10,
+      "row": 30,
+      "cols": 49
+    },
+    "variants": 8
+  },
+  {
+    "slug": "kaito",
+    "name": "KAITO",
+    "vocadbArtistId": 71,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/9805.png"
+      }
+    ],
+    "cols": 97,
+    "credit": "© Crypton Future Media, INC. www.piapro.net",
+    "og": {
+      "col": 5,
+      "row": 14,
+      "cols": 86
+    },
+    "variants": 8
+  },
+  {
+    "slug": "flower",
+    "name": "v flower",
+    "vocadbArtistId": 21165,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/21165.png"
+      }
+    ],
+    "cols": 77,
+    "credit": "© v flower project",
+    "og": {
+      "col": 4,
+      "row": 16,
+      "cols": 69
+    },
+    "variants": 8
+  },
+  {
+    "slug": "uta",
+    "name": "唄音ウタ",
+    "vocadbArtistId": 803,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/803.png"
+      }
+    ],
+    "cols": 62,
+    "credit": "イラスト: derenta © 飴屋/菖蒲",
+    "og": {
+      "col": 3,
+      "row": 16,
+      "cols": 56
+    },
+    "variants": 8
+  },
+  {
+    "slug": "meiko",
+    "name": "MEIKO",
+    "vocadbArtistId": 176,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/176.png"
+      }
+    ],
+    "cols": 95,
+    "credit": "© Crypton Future Media, INC. www.piapro.net",
+    "og": {
+      "col": 6,
+      "row": 12,
+      "cols": 78
+    },
+    "variants": 8
+  },
+  {
+    "slug": "una",
+    "name": "音街ウナ",
+    "vocadbArtistId": 170649,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/170649.png"
+      }
+    ],
+    "cols": 80,
+    "credit": "© MTK/INTERNET Co., Ltd.",
+    "og": {
+      "col": 6,
+      "row": 10,
+      "cols": 67
+    },
+    "variants": 8
+  },
+  {
+    "slug": "kiritan",
+    "name": "東北きりたん",
+    "vocadbArtistId": 106530,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/106530.png"
+      }
+    ],
+    "cols": 56,
+    "credit": "イラスト: 江戸村ににこ © SSS LLC.",
+    "og": {
+      "col": 6,
+      "row": 19,
+      "cols": 44
+    },
+    "variants": 8
+  },
+  {
+    "slug": "gakupo",
+    "name": "神威がくぽ",
+    "vocadbArtistId": 12,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/12.png"
+      }
+    ],
+    "cols": 70,
+    "credit": "イラスト: 三浦建太郎 © INTERNET Co., Ltd.",
+    "og": {
+      "col": 4,
+      "row": 10,
+      "cols": 63
+    },
+    "variants": 8
+  },
+  {
+    "slug": "chise",
+    "name": "知声",
+    "vocadbArtistId": 99757,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/99757.png"
+      }
+    ],
+    "cols": 52,
+    "credit": "イラスト: チェリ子 © Techno-Speech, Inc.",
+    "og": {
+      "col": 2,
+      "row": 8,
+      "cols": 47
+    },
+    "variants": 8
+  },
+  {
+    "slug": "yuki",
+    "name": "歌愛ユキ",
+    "vocadbArtistId": 191,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/191.png"
+      }
+    ],
+    "cols": 48,
+    "credit": "© AH-Software Co., Ltd.",
+    "og": {
+      "col": 2,
+      "row": 10,
+      "cols": 43
+    },
+    "variants": 8
+  },
+  {
+    "slug": "iroha",
+    "name": "猫村いろは",
+    "vocadbArtistId": 77,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/77.png"
+      }
+    ],
+    "cols": 51,
+    "credit": "イラスト: オカマ © AH-Software Co., Ltd.",
+    "og": {
+      "col": 6,
+      "row": 17,
+      "cols": 43
+    },
+    "variants": 8
+  },
+  {
+    "slug": "chifuyu",
+    "name": "花隈千冬",
+    "vocadbArtistId": 103592,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/103592.png"
+      }
+    ],
+    "cols": 78,
+    "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
+    "og": {
+      "col": 24,
+      "row": 29,
+      "cols": 29
+    },
+    "variants": 8
+  },
+  {
+    "slug": "rikka",
+    "name": "小春六花",
+    "vocadbArtistId": 85853,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/85853.png"
+      }
+    ],
+    "cols": 42,
+    "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
+    "og": {
+      "col": 2,
+      "row": 11,
+      "cols": 38
+    },
+    "variants": 8
+  },
+  {
+    "slug": "karin",
+    "name": "夏色花梨",
+    "vocadbArtistId": 94959,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/94959.png"
+      }
+    ],
+    "cols": 39,
+    "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
+    "og": {
+      "col": 2,
+      "row": 9,
+      "cols": 35
+    },
+    "variants": 8
+  },
+  {
+    "slug": "eleanor",
+    "name": "Eleanor Forte",
+    "vocadbArtistId": 66906,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/66906.png"
+      }
+    ],
+    "cols": 48,
+    "credit": "© Dreamtonics Co., Ltd.",
+    "og": {
+      "col": 2,
+      "row": 6,
+      "cols": 43
+    },
+    "variants": 8
+  },
+  {
+    "slug": "moka",
+    "name": "宮舞モカ",
+    "vocadbArtistId": 132241,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/132241.png"
+      }
+    ],
+    "cols": 68,
+    "credit": "© AH-Software Co., Ltd.",
+    "og": {
+      "col": 23,
+      "row": 16,
+      "cols": 22
+    },
+    "variants": 8
+  },
+  {
+    "slug": "ruko",
+    "name": "欲音ルコ",
+    "vocadbArtistId": 172667,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/172667.png",
+        "alphaFloor": 64
+      }
+    ],
+    "cols": 59,
+    "credit": "© 日勝ゆう",
+    "og": {
+      "col": 8,
+      "row": 8,
+      "cols": 41
+    },
+    "variants": 8
+  },
+  {
+    "slug": "ritsu",
+    "name": "波音リツ",
+    "vocadbArtistId": 172646,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/172646.png"
+      }
+    ],
+    "cols": 44,
+    "credit": "© canon",
+    "og": {
+      "col": 3,
+      "row": 8,
+      "cols": 38
+    },
+    "variants": 8
+  },
+  {
+    "slug": "nurserobo",
+    "name": "ナースロボ＿タイプＴ",
+    "vocadbArtistId": 133742,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/133742.png"
+      }
+    ],
+    "cols": 56,
+    "credit": "イラスト: 捨て犬A・最",
+    "og": {
+      "col": 8,
+      "row": 15,
+      "cols": 40
+    },
+    "variants": 8
+  },
+  {
+    "slug": "akari",
+    "name": "紲星あかり",
+    "vocadbArtistId": 134289,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/134289.png"
+      }
+    ],
+    "cols": 38,
+    "credit": "イラスト: 文倉十 © VOCALOMAKETS",
+    "og": {
+      "col": 2,
+      "row": 6,
+      "cols": 34
+    },
+    "variants": 8
+  },
+  {
+    "slug": "solaria",
+    "name": "SOLARIA",
+    "vocadbArtistId": 76317,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/76317.png"
+      }
+    ],
+    "cols": 41,
+    "credit": "イラスト: Superstellar © Eclipsed Sounds",
+    "og": {
+      "col": 2,
+      "row": 7,
+      "cols": 37
+    },
+    "variants": 8
+  },
+  {
+    "slug": "miki",
+    "name": "SF-A2 開発コード miki",
+    "vocadbArtistId": 146,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/146.png"
+      }
+    ],
+    "cols": 41,
+    "credit": "イラスト: コザキユースケ © AH-Software Co., Ltd.",
+    "og": {
+      "col": 2,
+      "row": 8,
+      "cols": 37
+    },
+    "variants": 8
+  },
+  {
+    "slug": "zundamon",
+    "name": "ずんだもん",
+    "vocadbArtistId": 119812,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/98107.png"
+      }
+    ],
+    "cols": 43,
+    "credit": "© SSS LLC.",
+    "og": {
+      "col": 12,
+      "row": 9,
+      "cols": 28
+    },
+    "variants": 8
+  },
+  {
+    "slug": "lily",
+    "name": "Lily",
+    "vocadbArtistId": 139,
+    "targets": [
+      {
+        "url": "https://static.vocadb.net/img/Artist/mainOrig/139.png"
+      }
+    ],
+    "cols": 42,
+    "credit": "イラスト: KEI © INTERNET Co., Ltd.",
+    "og": {
+      "col": 2,
+      "row": 6,
+      "cols": 38
+    },
+    "variants": 8
   }
 ]
