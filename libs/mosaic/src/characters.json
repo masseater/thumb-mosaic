@@ -274,7 +274,7 @@
     "variants": 8
   },
   {
-    "slug": "una",
+    "slug": "otomachi",
     "name": "音街ウナ",
     "vocadbArtistId": 170649,
     "targets": [
@@ -328,7 +328,7 @@
     "variants": 8
   },
   {
-    "slug": "chise",
+    "slug": "chise-a",
     "name": "知声",
     "vocadbArtistId": 99757,
     "targets": [
@@ -382,7 +382,7 @@
     "variants": 8
   },
   {
-    "slug": "chifuyu",
+    "slug": "hanaguma",
     "name": "花隈千冬",
     "vocadbArtistId": 103592,
     "targets": [
@@ -400,7 +400,7 @@
     "variants": 8
   },
   {
-    "slug": "rikka",
+    "slug": "koharuri",
     "name": "小春六花",
     "vocadbArtistId": 85853,
     "targets": [
@@ -418,7 +418,7 @@
     "variants": 8
   },
   {
-    "slug": "karin",
+    "slug": "natsuki",
     "name": "夏色花梨",
     "vocadbArtistId": 94959,
     "targets": [
@@ -454,7 +454,7 @@
     "variants": 8
   },
   {
-    "slug": "moka",
+    "slug": "miyamai",
     "name": "宮舞モカ",
     "vocadbArtistId": 132241,
     "targets": [
@@ -509,7 +509,7 @@
     "variants": 8
   },
   {
-    "slug": "nurserobo",
+    "slug": "nurse-tt",
     "name": "ナースロボ＿タイプＴ",
     "vocadbArtistId": 133742,
     "targets": [
@@ -527,7 +527,7 @@
     "variants": 8
   },
   {
-    "slug": "akari",
+    "slug": "kizuna",
     "name": "紲星あかり",
     "vocadbArtistId": 134289,
     "targets": [
@@ -581,7 +581,7 @@
     "variants": 8
   },
   {
-    "slug": "zundamon",
+    "slug": "nanoda",
     "name": "ずんだもん",
     "vocadbArtistId": 119812,
     "targets": [
