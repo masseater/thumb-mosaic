@@ -8,7 +8,9 @@ import { Array as Arr, Option, pipe } from "effect";
 import { defineConfig } from "vite-plus";
 
 import { BASE_PATH } from "./base-path.ts";
-import { SEARCH_INDEX_ORIGIN, SITEMAP_FILE } from "./src/shared/config/search.ts";
+import { SEARCH_INDEX_ORIGIN } from "./src/shared/config/search.ts";
+
+const SITEMAP_FILE = "sitemap.xml";
 
 const characterPages = pipe(
   CHARACTERS,

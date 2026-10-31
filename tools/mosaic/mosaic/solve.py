@@ -30,11 +30,14 @@ def _member(archive: bytes, name: str) -> bytes:
         return z.read(name)
 
 
-def _part(url: str, member: str | None) -> Image.Image:
+def _part(url: str, member: str | None, alpha_floor: int) -> Image.Image:
     raw = get(url)
     if raw is None:
         raise RuntimeError(f"元画像を取れなかった: {url}")
-    return Image.open(io.BytesIO(_member(raw, member) if member else raw)).convert("RGBA")
+    im = Image.open(io.BytesIO(_member(raw, member) if member else raw)).convert("RGBA")
+    if alpha_floor:
+        im.putalpha(im.getchannel("A").point(lambda a: a if a >= alpha_floor else 0))
+    return im
 
 
 def _side_by_side(parts: list[Image.Image]) -> Image.Image:
@@ -52,7 +55,7 @@ def _side_by_side(parts: list[Image.Image]) -> Image.Image:
 def load_target(ch: Character, cache: Path) -> Image.Image:
     path = cache / "target.png"
     if not path.exists():
-        parts = [_part(url, member) for url, member in ch.targets]
+        parts = [_part(url, member, floor) for url, member, floor in ch.targets]
         (parts[0] if len(parts) == 1 else _side_by_side(parts)).save(path)
     return Image.open(path).convert("RGBA")
 
