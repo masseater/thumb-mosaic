@@ -116,7 +116,6 @@ jobs:
       group: mosaic-${{ matrix.slug }}
     strategy:
       fail-fast: true
-      max-parallel: 8
       matrix:
         slug: ${{ fromJSON(needs.plan.outputs.slugs) }}
     env:
