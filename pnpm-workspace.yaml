@@ -57,7 +57,7 @@ catalogs:
     effect: 4.0.6
     fallow: 3.37.0
     radix-ui: 1.8.1
-    renovate: 44.190.0
+    renovate: 44.190.1
     steiger: 0.8.0
     tailwindcss: 4.3.3
     textlint: 15.8.0
