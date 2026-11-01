@@ -3,11 +3,25 @@ import type { ReactNode } from "react";
 import { useMemo } from "react";
 
 const ACTIVE_OPTIONS = { includeSearch: false };
+const NEAREST: ScrollIntoViewOptions = { block: "nearest", inline: "center" };
 
-const SwitcherLink = ({ slug }: Readonly<{ slug: string }>): ReactNode => {
+const revealWhen =
+  (current: boolean) =>
+  (element: HTMLAnchorElement | null): void => {
+    if (current && element !== null) {
+      element.scrollIntoView(NEAREST);
+    }
+  };
+
+const SwitcherLink = ({
+  slug,
+  current,
+}: Readonly<{ slug: string; current: boolean }>): ReactNode => {
   const params = useMemo(() => ({ slug }), [slug]);
+  const reveal = useMemo(() => revealWhen(current), [current]);
   return (
     <Link
+      ref={reveal}
       to="/$slug"
       params={params}
       activeOptions={ACTIVE_OPTIONS}
