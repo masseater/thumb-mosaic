@@ -101,9 +101,9 @@ allowBuilds:
   re2: true
   "@openrouter/sdk": false
 packageExtensions:
-  "@feature-sliced/steiger-plugin@0.8.0":
+  "@feature-sliced/steiger-plugin":
     dependencies:
-      "@steiger/toolkit": 0.2.3
+      "@steiger/toolkit": 0.2.4
 patchedDependencies:
   "@tanstack/eslint-plugin-start@0.1.0": patches/@tanstack__eslint-plugin-start@0.1.0.patch
 minimumReleaseAgeExclude:
