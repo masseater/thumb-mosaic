@@ -86,22 +86,19 @@ jobs:
       latest: ${{ steps.head.outputs.latest }}
       slugs: ${{ steps.slugs.outputs.slugs }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts/latest-commit.sh
+            libs/mosaic/src/characters.json
+          sparse-checkout-cone-mode: false
       - id: head
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.sha }}
           REF_NAME: ${{ github.ref_name }}
-        run: |
-          current="$(gh api "repos/$GITHUB_REPOSITORY/commits/$REF_NAME" --jq .sha)"
-          if [ "$current" = "$HEAD_SHA" ]; then
-            echo "latest=true" >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.head.outputs.latest == 'true'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          sparse-checkout: libs/mosaic/src/characters.json
-          sparse-checkout-cone-mode: false
+        run: .github/scripts/latest-commit.sh
       - id: slugs
         if: steps.head.outputs.latest == 'true'
         run: echo "slugs=$(jq -c '[.[].slug]' libs/mosaic/src/characters.json)" >> "$GITHUB_OUTPUT"
@@ -125,36 +122,49 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - id: start
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: .github/scripts/latest-commit.sh
+      - if: steps.start.outputs.latest == 'true'
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
       - id: pool
+        if: steps.start.outputs.latest == 'true'
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tools/mosaic/.cache/pool.tar
           key: mosaic-pool-${{ matrix.slug }}-${{ github.run_id }}
           restore-keys: |
             mosaic-pool-${{ matrix.slug }}-
-      - if: steps.pool.outputs.cache-matched-key != ''
+      - if: steps.start.outputs.latest == 'true' && steps.pool.outputs.cache-matched-key != ''
         run: |
           if tar -tf pool.tar -- "$SLUG" > /dev/null; then
             tar -xf pool.tar -- "$SLUG"
           fi
           rm pool.tar
         working-directory: tools/mosaic/.cache
-      - run: sleep "$((JOB_INDEX * 30))"
+      - if: steps.start.outputs.latest == 'true'
+        run: sleep "$((JOB_INDEX * 30))"
         env:
           JOB_INDEX: ${{ strategy.job-index }}
-      - run: uv run mosaic songs "$SLUG"
+      - if: steps.start.outputs.latest == 'true'
+        run: uv run mosaic songs "$SLUG"
         timeout-minutes: 30
         continue-on-error: true
         working-directory: tools/mosaic
       - id: build-pool
+        if: steps.start.outputs.latest == 'true'
         run: uv run mosaic pool "$SLUG"
         working-directory: tools/mosaic
-      - run: uv run mosaic solve "$SLUG"
+      - if: steps.start.outputs.latest == 'true'
+        run: uv run mosaic solve "$SLUG"
         working-directory: tools/mosaic
-      - run: uv run mosaic site "$SLUG"
+      - if: steps.start.outputs.latest == 'true'
+        run: uv run mosaic site "$SLUG"
         working-directory: tools/mosaic
       - if: always() && steps.build-pool.outcome != 'skipped'
         run: |
@@ -172,32 +182,44 @@ jobs:
           path: tools/mosaic/.cache/pool.tar
           key: mosaic-pool-${{ matrix.slug }}-${{ hashFiles(format('tools/mosaic/.cache/{0}/vocadb/songs.json', matrix.slug), format('tools/mosaic/.cache/{0}/thumbs.npz', matrix.slug), format('tools/mosaic/.cache/{0}/niconico-og.json', matrix.slug)) }}
       - id: changed
+        if: steps.start.outputs.latest == 'true'
         run: |
           rm -rf tools/mosaic/.cache
           if [ -d "apps/web/public/files/$SLUG/0" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
+      - if: steps.changed.outputs.changed == 'true'
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           cache: true
           run-install: |
             - args: ['--frozen-lockfile']
-      - if: steps.changed.outputs.changed == 'true'
+      - id: still
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: .github/scripts/latest-commit.sh
+      - if: steps.still.outputs.latest == 'true'
         run: vp exec alchemy deploy alchemy.files.ts --stage "$SLUG" --yes
         working-directory: apps/web
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      - run: |
+      - if: steps.start.outputs.latest == 'true'
+        run: |
           mkdir -p "$RUNNER_TEMP/live/$SLUG"
           cp "apps/web/public/files/$SLUG/manifest.json" "apps/web/public/files/$SLUG/candidates.json" "$RUNNER_TEMP/live/$SLUG/"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - if: steps.start.outputs.latest == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: live-${{ matrix.slug }}
           path: ${{ runner.temp }}/live/
           if-no-files-found: error
           retention-days: 1
-      - run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref "$REF_NAME" -f run_id="$RUN_ID" -f sha="$HEAD_SHA"
+      - if: steps.start.outputs.latest == 'true'
+        run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref "$REF_NAME" -f run_id="$RUN_ID" -f sha="$HEAD_SHA"
         env:
           GH_TOKEN: ${{ github.token }}
           REF_NAME: ${{ github.ref_name }}
