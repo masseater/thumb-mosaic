@@ -11,9 +11,8 @@ class Character:
     name: str
     vocadb_artist_id: int
     targets: tuple[tuple[str, str | None, int], ...]
-    cols: int
     credit: str
-    og: tuple[int, int, int]
+    og: tuple[float, float, float]
     variants: int
 
 
@@ -23,9 +22,8 @@ CHARACTERS = {
         name=c["name"],
         vocadb_artist_id=c["vocadbArtistId"],
         targets=tuple((t["url"], t.get("member"), t.get("alphaFloor", 0)) for t in c["targets"]),
-        cols=c["cols"],
         credit=c["credit"],
-        og=(c["og"]["col"], c["og"]["row"], c["og"]["cols"]),
+        og=(c["og"]["left"], c["og"]["top"], c["og"]["width"]),
         variants=c["variants"],
     )
     for c in json.loads(SOURCE.read_text())

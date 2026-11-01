@@ -120,8 +120,10 @@ def _level(tiles: list[tuple[int, Path]], grid: tuple[int, int], out: Path, pref
     return {"tw": width, "th": height, "block": side, "blocks": blocks}
 
 
-def _og(tiles: list[tuple[int, Path]], cols: int, crop: tuple[int, int, int], out: Path) -> None:
-    col, row, width = crop
+def _og(tiles: list[tuple[int, Path]], grid: tuple[int, int], crop: tuple[float, float, float], out: Path) -> None:
+    cols, rows = grid
+    left, top, span = crop
+    col, row, width = round(left * cols), round(top * rows), max(1, round(span * cols))
     tw, th = OG_TILE
     height = math.ceil(width * tw * OG_SIZE[1] / OG_SIZE[0] / th)
     card = Image.new("RGB", (width * tw, height * th), "white")
@@ -197,7 +199,7 @@ def _variant(ch: Character, data: Path, cache: Path, public: Path, smalls: dict[
     cells = [t[0] for t in tiles]
     grid = (assignment["cols"], assignment["rows"])
     levels = [_level(list(zip(cells, paths)), grid, out, *spec) for spec in LEVELS]
-    _og(list(zip(cells, paths)), grid[0], ch.og, out)
+    _og(list(zip(cells, paths)), grid, ch.og, out)
     (out / "tiles.json").write_text(json.dumps(tiles, ensure_ascii=False, separators=(",", ":")))
     (out / CHUNK_DIR).mkdir()
     for start in range(0, len(tiles), CHUNK):

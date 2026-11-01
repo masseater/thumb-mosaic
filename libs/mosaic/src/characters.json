@@ -8,12 +8,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/1.png"
       }
     ],
-    "cols": 80,
     "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 10,
-      "row": 38,
-      "cols": 60
+      "left": 0.125,
+      "top": 0.1776,
+      "width": 0.75
     },
     "variants": 8
   },
@@ -26,12 +25,11 @@
         "url": "https://kasaneteto.jp/assets/download/illust-logo/official_illust_teto_new.png"
       }
     ],
-    "cols": 64,
     "credit": "イラスト: 線 © TWINDRILL kasaneteto.jp",
     "og": {
-      "col": 4,
-      "row": 45,
-      "cols": 56
+      "left": 0.0625,
+      "top": 0.1557,
+      "width": 0.875
     },
     "variants": 8
   },
@@ -45,12 +43,11 @@
         "member": "足立レイ_立ち絵RF_1920_v3/デフォルト/デフォルト.png"
       }
     ],
-    "cols": 64,
     "credit": "立ち絵: みさいる © メカニカルガール mechanicalgirl.jp",
     "og": {
-      "col": 14,
-      "row": 6,
-      "cols": 36
+      "left": 0.2188,
+      "top": 0.0366,
+      "width": 0.5625
     },
     "variants": 8
   },
@@ -66,12 +63,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/86365.png"
       }
     ],
-    "cols": 60,
     "credit": "イラスト: A.I.VOICE 琴葉 茜・葵 © AI,Inc.",
     "og": {
-      "col": 0,
-      "row": 4,
-      "cols": 60
+      "left": 0.0,
+      "top": 0.0328,
+      "width": 1.0
     },
     "variants": 8
   },
@@ -84,12 +80,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/134288.png"
       }
     ],
-    "cols": 80,
     "credit": "イラスト: 文倉十 © VOCALOMAKETS",
     "og": {
-      "col": 10,
-      "row": 10,
-      "cols": 60
+      "left": 0.125,
+      "top": 0.0417,
+      "width": 0.75
     },
     "variants": 8
   },
@@ -102,12 +97,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/504.png"
       }
     ],
-    "cols": 80,
     "credit": "イラスト: 赤坂アカ © 1st PLACE Co., Ltd.",
     "og": {
-      "col": 12,
-      "row": 12,
-      "cols": 60
+      "left": 0.15,
+      "top": 0.0583,
+      "width": 0.75
     },
     "variants": 8
   },
@@ -120,12 +114,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/83928.png"
       }
     ],
-    "cols": 100,
     "credit": "イラスト: PALOW. © KAMITSUBAKI STUDIO",
     "og": {
-      "col": 22,
-      "row": 22,
-      "cols": 60
+      "left": 0.22,
+      "top": 0.0726,
+      "width": 0.6
     },
     "variants": 8
   },
@@ -138,12 +131,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/2.png"
       }
     ],
-    "cols": 41,
     "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 2,
-      "row": 18,
-      "cols": 37
+      "left": 0.0488,
+      "top": 0.0614,
+      "width": 0.9024
     },
     "variants": 8
   },
@@ -156,12 +148,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/14.png"
       }
     ],
-    "cols": 63,
     "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 6,
-      "row": 30,
-      "cols": 49
+      "left": 0.0952,
+      "top": 0.094,
+      "width": 0.7778
     },
     "variants": 8
   },
@@ -174,12 +165,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/3.png"
       }
     ],
-    "cols": 84,
     "credit": "イラスト: ゆうきまさみ © INTERNET Co., Ltd.",
     "og": {
-      "col": 5,
-      "row": 17,
-      "cols": 75
+      "left": 0.0595,
+      "top": 0.059,
+      "width": 0.8929
     },
     "variants": 8
   },
@@ -192,12 +182,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/15.png"
       }
     ],
-    "cols": 68,
     "credit": "イラスト: KEI © Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 10,
-      "row": 30,
-      "cols": 49
+      "left": 0.1471,
+      "top": 0.0993,
+      "width": 0.7206
     },
     "variants": 8
   },
@@ -210,12 +199,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/9805.png"
       }
     ],
-    "cols": 97,
     "credit": "© Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 5,
-      "row": 14,
-      "cols": 86
+      "left": 0.0515,
+      "top": 0.0581,
+      "width": 0.8866
     },
     "variants": 8
   },
@@ -228,12 +216,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/21165.png"
       }
     ],
-    "cols": 77,
     "credit": "© v flower project",
     "og": {
-      "col": 4,
-      "row": 16,
-      "cols": 69
+      "left": 0.0519,
+      "top": 0.0618,
+      "width": 0.8961
     },
     "variants": 8
   },
@@ -246,12 +233,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/803.png"
       }
     ],
-    "cols": 62,
     "credit": "イラスト: derenta © 飴屋/菖蒲",
     "og": {
-      "col": 3,
-      "row": 16,
-      "cols": 56
+      "left": 0.0484,
+      "top": 0.0588,
+      "width": 0.9032
     },
     "variants": 8
   },
@@ -264,12 +250,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/176.png"
       }
     ],
-    "cols": 95,
     "credit": "© Crypton Future Media, INC. www.piapro.net",
     "og": {
-      "col": 6,
-      "row": 12,
-      "cols": 78
+      "left": 0.0632,
+      "top": 0.0642,
+      "width": 0.8211
     },
     "variants": 8
   },
@@ -282,12 +267,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/170649.png"
       }
     ],
-    "cols": 80,
     "credit": "© MTK/INTERNET Co., Ltd.",
     "og": {
-      "col": 6,
-      "row": 10,
-      "cols": 67
+      "left": 0.075,
+      "top": 0.0625,
+      "width": 0.8375
     },
     "variants": 8
   },
@@ -300,12 +284,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/106530.png"
       }
     ],
-    "cols": 56,
     "credit": "イラスト: 江戸村ににこ © SSS LLC.",
     "og": {
-      "col": 6,
-      "row": 19,
-      "cols": 44
+      "left": 0.1071,
+      "top": 0.1011,
+      "width": 0.7857
     },
     "variants": 8
   },
@@ -318,12 +301,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/12.png"
       }
     ],
-    "cols": 70,
     "credit": "イラスト: 三浦建太郎 © INTERNET Co., Ltd.",
     "og": {
-      "col": 4,
-      "row": 10,
-      "cols": 63
+      "left": 0.0571,
+      "top": 0.0641,
+      "width": 0.9
     },
     "variants": 8
   },
@@ -336,12 +318,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/99757.png"
       }
     ],
-    "cols": 52,
     "credit": "イラスト: チェリ子 © Techno-Speech, Inc.",
     "og": {
-      "col": 2,
-      "row": 8,
-      "cols": 47
+      "left": 0.0385,
+      "top": 0.0602,
+      "width": 0.9038
     },
     "variants": 8
   },
@@ -354,12 +335,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/191.png"
       }
     ],
-    "cols": 48,
     "credit": "© AH-Software Co., Ltd.",
     "og": {
-      "col": 2,
-      "row": 10,
-      "cols": 43
+      "left": 0.0417,
+      "top": 0.0585,
+      "width": 0.8958
     },
     "variants": 8
   },
@@ -372,12 +352,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/77.png"
       }
     ],
-    "cols": 51,
     "credit": "イラスト: オカマ © AH-Software Co., Ltd.",
     "og": {
-      "col": 6,
-      "row": 17,
-      "cols": 43
+      "left": 0.1176,
+      "top": 0.1328,
+      "width": 0.8431
     },
     "variants": 8
   },
@@ -390,12 +369,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/103592.png"
       }
     ],
-    "cols": 78,
     "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
     "og": {
-      "col": 24,
-      "row": 29,
-      "cols": 29
+      "left": 0.3077,
+      "top": 0.148,
+      "width": 0.3718
     },
     "variants": 8
   },
@@ -408,12 +386,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/85853.png"
       }
     ],
-    "cols": 42,
     "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
     "og": {
-      "col": 2,
-      "row": 11,
-      "cols": 38
+      "left": 0.0476,
+      "top": 0.0618,
+      "width": 0.9048
     },
     "variants": 8
   },
@@ -426,12 +403,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/94959.png"
       }
     ],
-    "cols": 39,
     "credit": "イラスト: 手島nari © TOKYO6 ENTERTAINMENT",
     "og": {
-      "col": 2,
-      "row": 9,
-      "cols": 35
+      "left": 0.0513,
+      "top": 0.0616,
+      "width": 0.8974
     },
     "variants": 8
   },
@@ -444,12 +420,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/66906.png"
       }
     ],
-    "cols": 48,
     "credit": "© Dreamtonics Co., Ltd.",
     "og": {
-      "col": 2,
-      "row": 6,
-      "cols": 43
+      "left": 0.0417,
+      "top": 0.0638,
+      "width": 0.8958
     },
     "variants": 8
   },
@@ -462,12 +437,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/132241.png"
       }
     ],
-    "cols": 68,
     "credit": "© AH-Software Co., Ltd.",
     "og": {
-      "col": 23,
-      "row": 16,
-      "cols": 22
+      "left": 0.3382,
+      "top": 0.0941,
+      "width": 0.3235
     },
     "variants": 8
   },
@@ -481,12 +455,11 @@
         "alphaFloor": 64
       }
     ],
-    "cols": 59,
     "credit": "© 日勝ゆう",
     "og": {
-      "col": 8,
-      "row": 8,
-      "cols": 41
+      "left": 0.1356,
+      "top": 0.0541,
+      "width": 0.6949
     },
     "variants": 8
   },
@@ -499,12 +472,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/172646.png"
       }
     ],
-    "cols": 44,
     "credit": "© canon",
     "og": {
-      "col": 3,
-      "row": 8,
-      "cols": 38
+      "left": 0.0682,
+      "top": 0.0762,
+      "width": 0.8636
     },
     "variants": 8
   },
@@ -517,12 +489,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/133742.png"
       }
     ],
-    "cols": 56,
     "credit": "イラスト: 捨て犬A・最",
     "og": {
-      "col": 8,
-      "row": 15,
-      "cols": 40
+      "left": 0.1429,
+      "top": 0.1064,
+      "width": 0.7143
     },
     "variants": 8
   },
@@ -535,12 +506,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/134289.png"
       }
     ],
-    "cols": 38,
     "credit": "イラスト: 文倉十 © VOCALOMAKETS",
     "og": {
-      "col": 2,
-      "row": 6,
-      "cols": 34
+      "left": 0.0526,
+      "top": 0.0561,
+      "width": 0.8947
     },
     "variants": 8
   },
@@ -553,12 +523,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/76317.png"
       }
     ],
-    "cols": 41,
     "credit": "イラスト: Superstellar © Eclipsed Sounds",
     "og": {
-      "col": 2,
-      "row": 7,
-      "cols": 37
+      "left": 0.0488,
+      "top": 0.0707,
+      "width": 0.9024
     },
     "variants": 8
   },
@@ -571,12 +540,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/146.png"
       }
     ],
-    "cols": 41,
     "credit": "イラスト: コザキユースケ © AH-Software Co., Ltd.",
     "og": {
-      "col": 2,
-      "row": 8,
-      "cols": 37
+      "left": 0.0488,
+      "top": 0.0602,
+      "width": 0.9024
     },
     "variants": 8
   },
@@ -589,12 +557,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/98107.png"
       }
     ],
-    "cols": 43,
     "credit": "© SSS LLC.",
     "og": {
-      "col": 12,
-      "row": 9,
-      "cols": 28
+      "left": 0.2791,
+      "top": 0.0667,
+      "width": 0.6512
     },
     "variants": 8
   },
@@ -607,12 +574,11 @@
         "url": "https://static.vocadb.net/img/Artist/mainOrig/139.png"
       }
     ],
-    "cols": 42,
     "credit": "イラスト: KEI © INTERNET Co., Ltd.",
     "og": {
-      "col": 2,
-      "row": 6,
-      "cols": 38
+      "left": 0.0476,
+      "top": 0.0619,
+      "width": 0.9048
     },
     "variants": 8
   }

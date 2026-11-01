@@ -23,6 +23,10 @@ COVERAGE = 0.05
 REUSE_PENALTY = 1.0
 ERROR_SCALE = 10000
 PART_GAP = 0.02
+FILL = 0.85
+MAX_CELLS = 8200
+MIN_COLS = 8
+MAX_COLS = 400
 
 
 def _member(archive: bytes, name: str) -> bytes:
@@ -60,21 +64,41 @@ def load_target(ch: Character, cache: Path) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
-def target_cells(ch: Character, cache: Path) -> tuple[int, np.ndarray, np.ndarray, np.ndarray]:
-    src = load_target(ch, cache)
+def _grid(src: Image.Image, cols: int) -> int:
+    aw, ah = TILE_ASPECT
+    return int(src.size[1] / (src.size[0] / cols * ah / aw))
+
+
+def _covered(alpha: Image.Image, cols: int, rows: int) -> np.ndarray:
+    cover = np.asarray(alpha.resize((cols, rows), Image.BOX), dtype=np.float64).ravel() / 255
+    return np.where(cover > COVERAGE)[0]
+
+
+def fit_cols(src: Image.Image, pool: int) -> int:
+    alpha = src.getchannel("A")
+    target = min(MAX_CELLS, int(pool * FILL))
+    low, high = MIN_COLS, MAX_COLS
+    while low < high:
+        mid = (low + high + 1) // 2
+        if len(_covered(alpha, mid, _grid(src, mid))) <= target:
+            low = mid
+        else:
+            high = mid - 1
+    return low
+
+
+def target_cells(src: Image.Image, cols: int) -> tuple[int, np.ndarray, np.ndarray, np.ndarray]:
     alpha = src.getchannel("A")
     bg = Image.new("RGBA", src.size, (255, 255, 255, 255))
     bg.alpha_composite(src)
     rgb = bg.convert("RGB")
-    aw, ah = TILE_ASPECT
-    rows = int(src.size[1] / (src.size[0] / ch.cols * ah / aw))
-    big = rgb.resize((ch.cols * BLOCKS_X * 4, rows * BLOCKS_Y * 4), Image.LANCZOS)
-    grid = np.asarray(big.resize((ch.cols * BLOCKS_X, rows * BLOCKS_Y), Image.BOX), dtype=np.float64)
-    feats = oklab(grid).reshape(rows, BLOCKS_Y, ch.cols, BLOCKS_X, 3).transpose(0, 2, 1, 3, 4).reshape(rows * ch.cols, -1)
-    cover = np.asarray(alpha.resize((ch.cols, rows), Image.BOX), dtype=np.float64).ravel() / 255
-    cells = np.where(cover > COVERAGE)[0]
-    blocks = np.asarray(alpha.resize((ch.cols * BLOCKS_X, rows * BLOCKS_Y), Image.BOX), dtype=np.float64) / 255
-    weights = blocks.reshape(rows, BLOCKS_Y, ch.cols, BLOCKS_X).transpose(0, 2, 1, 3).reshape(rows * ch.cols, -1)
+    rows = _grid(src, cols)
+    big = rgb.resize((cols * BLOCKS_X * 4, rows * BLOCKS_Y * 4), Image.LANCZOS)
+    grid = np.asarray(big.resize((cols * BLOCKS_X, rows * BLOCKS_Y), Image.BOX), dtype=np.float64)
+    feats = oklab(grid).reshape(rows, BLOCKS_Y, cols, BLOCKS_X, 3).transpose(0, 2, 1, 3, 4).reshape(rows * cols, -1)
+    cells = _covered(alpha, cols, rows)
+    blocks = np.asarray(alpha.resize((cols * BLOCKS_X, rows * BLOCKS_Y), Image.BOX), dtype=np.float64) / 255
+    weights = blocks.reshape(rows, BLOCKS_Y, cols, BLOCKS_X).transpose(0, 2, 1, 3).reshape(rows * cols, -1)
     return rows, cells, feats[cells].astype(np.float32), weights[cells].astype(np.float32)
 
 
@@ -117,7 +141,9 @@ def variant_path(data: Path, variant: int) -> Path:
 def solve(ch: Character, cache: Path, data: Path) -> None:
     pool = np.load(cache / "features.npy")
     entries = json.loads((cache / POOL_FILE).read_text())
-    rows, cells, cfeats, weights = target_cells(ch, cache)
+    src = load_target(ch, cache)
+    cols = fit_cols(src, len(pool))
+    rows, cells, cfeats, weights = target_cells(src, cols)
     uses = np.zeros(len(pool))
     reuse = 0.0
     data.mkdir(parents=True, exist_ok=True)
@@ -127,12 +153,12 @@ def solve(ch: Character, cache: Path, data: Path) -> None:
         uses[chosen] += 1
         if variant == 0:
             reuse = REUSE_PENALTY * float(np.median(((cfeats - pool[chosen]) ** 2 * np.repeat(weights, 3, axis=1)).sum(1)))
-        _write(ch, entries, (rows, cells, cfeats, weights), (pool, chosen), variant_path(data, variant))
+        _write(ch, entries, (cols, rows, cells, cfeats, weights), (pool, chosen), variant_path(data, variant))
         print(f"solve variant={variant} seconds={time.time() - started:.1f}", file=sys.stderr)
 
 
 def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path: Path) -> None:
-    rows, cells, cfeats, weights = target
+    cols, rows, cells, cfeats, weights = target
     pool, chosen = picks
     per_block = np.sqrt(((cfeats - pool[chosen]) ** 2).reshape(len(cells), BLOCKS_X * BLOCKS_Y, 3).sum(2))
     delta = (per_block * weights).sum() / weights.sum()
@@ -142,7 +168,7 @@ def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path
     assignment = {
         "character": ch.name,
         "credit": ch.credit,
-        "cols": ch.cols,
+        "cols": cols,
         "rows": rows,
         "pool": len(pool),
         "meanDelta": round(float(delta), 4),
@@ -151,4 +177,4 @@ def _write(ch: Character, entries: list[dict], target: tuple, picks: tuple, path
         "fallbacks": [e["thumbs"][0] if e["service"] == "NicoNicoDouga" else "" for e in tiles],
     }
     path.write_text(json.dumps(assignment, ensure_ascii=False, separators=(",", ":")) + "\n")
-    print(f"solve {path.name} cells={len(cells)} pool={len(pool)} meanDelta={delta:.4f}", file=sys.stderr)
+    print(f"solve {path.name} cols={cols} cells={len(cells)} pool={len(pool)} meanDelta={delta:.4f}", file=sys.stderr)
