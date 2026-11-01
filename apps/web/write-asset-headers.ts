@@ -13,11 +13,16 @@ import {
 import { Base64 } from "effect/encoding";
 
 import { assetHeaders } from "./asset-headers.ts";
+import type { PageHeaders } from "./asset-headers.ts";
+import { BASE_PATH } from "./base-path.ts";
 import { SEARCH_INDEX_ORIGIN } from "./src/shared/config/search.ts";
 import { contentSecurityPolicy } from "./src/shared/config/security-headers.ts";
 
 const OUTDIR = "dist/client";
 const HEADERS_FILE = "_headers";
+const NOT_FOUND_PAGE = "404.html";
+const INDEX_PAGE = /(?<=^|\/)index\.html$/u;
+const HTML_EXTENSION = /\.html$/u;
 const INLINE_SCRIPT = /<script(?![^>]*\ssrc=)[^>]*>(?<body>[\s\S]*?)<\/script>/gu;
 const encoder = new TextEncoder();
 
@@ -40,29 +45,59 @@ const scriptHash = (body: string): Effect.Effect<string> =>
     Effect.map((digest) => `'sha256-${Base64.encode(new Uint8Array(digest))}'`),
   );
 
-const documentHeaders = (hashes: readonly string[]): Readonly<Record<string, string>> => ({
+const contentSecurityPolicyHeader = (
+  hashes: readonly string[],
+): Readonly<Record<string, string>> => ({
   "Content-Security-Policy": contentSecurityPolicy(hashes),
+});
+
+const documentHeaders = (hashes: readonly string[]): Readonly<Record<string, string>> => ({
+  ...contentSecurityPolicyHeader(hashes),
   ...Option.match(SEARCH_INDEX_ORIGIN, {
     onNone: () => ({ "X-Robots-Tag": "noindex" }),
     onSome: () => ({}),
   }),
 });
 
+const pagePath = (page: string): string =>
+  `${BASE_PATH}/${pipe(page, Str.replace(INDEX_PAGE, ""), Str.replace(HTML_EXTENSION, ""))}`;
+
+const scriptHashes = (bodies: readonly string[]): Effect.Effect<readonly string[]> =>
+  pipe(bodies, Arr.dedupe, Effect.forEach(scriptHash));
+
+const isNotFound = ({ page }: Readonly<{ page: string }>): boolean => page === NOT_FOUND_PAGE;
+
 const program = Effect.gen(function* write() {
   const fileSystem = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const entries = yield* fileSystem.readDirectory(OUTDIR, { recursive: true });
-  const pages = pipe(entries, Arr.filter(Str.endsWith(".html")));
-  const bodies = yield* pipe(
-    pages,
+  const pages = yield* pipe(
+    entries,
+    Arr.filter(Str.endsWith(".html")),
     Effect.forEach((page) =>
-      fileSystem.readFileString(path.join(OUTDIR, page)).pipe(Effect.map(scriptBodies)),
+      fileSystem.readFileString(path.join(OUTDIR, page)).pipe(
+        Effect.map(scriptBodies),
+        Effect.flatMap(scriptHashes),
+        Effect.map((hashes) => ({ page, hashes })),
+      ),
     ),
   );
-  const hashes = yield* pipe(bodies, Arr.flatten, Arr.dedupe, Effect.forEach(scriptHash));
+  const notFoundHashes = pipe(
+    pages,
+    Arr.filter(isNotFound),
+    Arr.flatMap(({ hashes }) => hashes),
+  );
+  const pageHeaders: readonly PageHeaders[] = pipe(
+    pages,
+    Arr.filter((entry) => !isNotFound(entry)),
+    Arr.map(({ page, hashes }) => ({
+      path: pagePath(page),
+      headers: contentSecurityPolicyHeader(hashes),
+    })),
+  );
   yield* fileSystem.writeFileString(
     path.join(OUTDIR, HEADERS_FILE),
-    assetHeaders(documentHeaders(hashes)),
+    assetHeaders({ documentHeaders: documentHeaders(notFoundHashes), pages: pageHeaders }),
   );
 });
 
