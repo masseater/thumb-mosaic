@@ -25,7 +25,7 @@
 | 音街ウナ              | <https://masseater.dev/mosaic/otomachi> |
 | 東北きりたん          | <https://masseater.dev/mosaic/kiritan>  |
 | 神威がくぽ            | <https://masseater.dev/mosaic/gakupo>   |
-| 知声                  | <https://masseater.dev/mosaic/chise-a>  |
+| 知声                  | <https://masseater.dev/mosaic/chis-a>   |
 | 歌愛ユキ              | <https://masseater.dev/mosaic/yuki>     |
 | 猫村いろは            | <https://masseater.dev/mosaic/iroha>    |
 | 花隈千冬              | <https://masseater.dev/mosaic/hanaguma> |
