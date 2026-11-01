@@ -32,6 +32,7 @@
 
 - PR のレビュー、PR ごとの CI・動作検証・デプロイはしない。動作は本番で確かめる。
 - マージ前に base を取り込み、手元の `vp run verify` を通してから自分でマージする。マージしてよいかは聞かない。ルールセットのバイパスや `--admin` は使わない。
+- GitHub 上で作るマージコミットには commit-msg フックが効かない。`gh pr merge` に件名や本文を渡すときは、同じメッセージを先に `vp exec commitlint` の標準入力に通す。
 - release-please のリリース PR は `verify` を手動実行して作り直す。`up-to-date` が承認待ちで取り込むものも無ければ、ユーザーに承認を頼む。
 
 ## oxlint-plugin-decision
