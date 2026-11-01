@@ -11,12 +11,12 @@ INTERVAL = 1.0
 API = "https://vocadb.net/api/songs"
 
 
-def _url(artist_id: int, start: int, sort: str) -> str:
-    return f"{API}?artistId%5B%5D={artist_id}&childVoicebanks=true&maxResults={PAGE}&start={start}&fields=PVs&sort={sort}&pvServices=NicoNicoDouga,Youtube&getTotalCount=true"
+def _url(artist_id: int, start: int, sort: str, count: bool) -> str:
+    return f"{API}?artistId%5B%5D={artist_id}&childVoicebanks=true&maxResults={PAGE}&start={start}&fields=PVs&sort={sort}&pvServices=NicoNicoDouga,Youtube&getTotalCount={str(count).lower()}"
 
 
-def _page(artist_id: int, start: int, sort: str) -> dict:
-    url = _url(artist_id, start, sort)
+def _page(artist_id: int, start: int, sort: str, count: bool = False) -> dict:
+    url = _url(artist_id, start, sort, count)
     time.sleep(INTERVAL)
     raw = get(url)
     if raw is None:
@@ -26,7 +26,7 @@ def _page(artist_id: int, start: int, sort: str) -> dict:
 
 
 def _all(artist_id: int, total: int, sort: str) -> Iterator[dict]:
-    first = _page(artist_id, 0, sort)
+    first = _page(artist_id, 0, sort, count=True)
     count = min(total, first["totalCount"])
     yield from first["items"]
     for start in range(PAGE, count, PAGE):
