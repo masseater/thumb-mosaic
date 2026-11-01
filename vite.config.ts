@@ -125,6 +125,7 @@ export default defineConfig({
                 "Request",
                 "HTMLCanvasElement",
                 "HTMLImageElement",
+                "HTMLAnchorElement",
                 "CanvasRenderingContext2D",
                 "PointerEvent",
                 "WheelEvent",
