@@ -59,17 +59,6 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
-      - run: |
-          jq -r '.[].slug' ../../libs/mosaic/src/characters.json | while read -r slug; do
-            vp exec alchemy state rm "thumb-mosaic/production/Files-$slug" || true
-          done
-          if vp exec alchemy state ls thumb-mosaic/production | grep -F "Files-"; then
-            exit 1
-          fi
-        working-directory: apps/web
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - run: vp exec alchemy deploy --stage production --yes
         working-directory: apps/web
         env:
