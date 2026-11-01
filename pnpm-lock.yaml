@@ -348,7 +348,7 @@ overrides:
   glob@>=9.0.0 <=14.0.1: ^14.0.2
   minimatch@<11.0.1: ^11.0.1
 
-packageExtensionsChecksum: sha256-csL59DjB3WeZpbmd8ufUdj8Z/ly19tadpWRNCTcwfac=
+packageExtensionsChecksum: sha256-z8SsphkaRW5GaP3FG3yjKgl7vtTJvvX6aYtMKDysa/c=
 
 patchedDependencies:
   '@tanstack/eslint-plugin-start@0.1.0': 364cc40b73326fe59c5d685ac247690de2302e3e731b7b7d37583701f9370644
