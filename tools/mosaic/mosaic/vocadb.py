@@ -8,6 +8,8 @@ from .net import get
 
 PAGE = 100
 INTERVAL = 1.0
+TRIES = 3
+TIMEOUT = 60
 API = "https://vocadb.net/api/songs"
 
 
@@ -18,7 +20,7 @@ def _url(artist_id: int, start: int, sort: str, count: bool) -> str:
 def _page(artist_id: int, start: int, sort: str, count: bool = False) -> dict:
     url = _url(artist_id, start, sort, count)
     time.sleep(INTERVAL)
-    raw = get(url)
+    raw = get(url, TRIES, TIMEOUT)
     if raw is None:
         raise RuntimeError(f"VocaDB の一覧を取れなかった: {url}")
     print(f"vocadb {sort} {start}", file=sys.stderr, flush=True)
