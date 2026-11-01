@@ -1,4 +1,4 @@
-const INTRO_MS = 2100;
+const INTRO_MS = 1600;
 
 const SHADER = `
 struct Frame {
@@ -79,9 +79,9 @@ fn vs_intro(@builtin(vertex_index) index: u32, @builtin(instance_index) tile: u3
   let spread = length((cell - middle) * stretch) / length(middle * stretch);
   let angle = random(tile * 3u) * 6.2831853;
   let reach = frame.viewport.w * (0.8 + random(tile * 3u + 1u) * 0.6);
-  let delay = random(tile * 3u + 2u) * 700.0 + spread * 400.0;
-  let progress = clamp((frame.viewport.z - delay) / 1000.0, 0.0, 1.0);
-  let remaining = pow(1.0 - progress, 4.0);
+  let delay = random(tile * 3u + 2u) * 350.0 + spread * 400.0;
+  let progress = clamp((frame.viewport.z - delay) / 850.0, 0.0, 1.0);
+  let remaining = pow(1.0 - progress, 6.0);
   let center = grid_to_pixel(cell + 0.5) + vec2f(cos(angle), sin(angle)) * reach * remaining;
   var result: Out;
   result.position = to_clip(center + (corner - 0.5) * cell_pixels() * (1.0 + remaining * 2.5));
