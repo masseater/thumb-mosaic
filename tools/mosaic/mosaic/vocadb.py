@@ -43,17 +43,23 @@ def _added_since(artist_id: int, known: set[int]) -> Iterator[dict]:
         start += PAGE
 
 
-def songs(artist_id: int, cache: Path, limit: int | None) -> list[dict]:
-    if limit is not None:
-        return list({s["id"]: s for s in _all(artist_id, limit, "RatingScore")}.values())
+def fetch_songs(artist_id: int, cache: Path, limit: int | None) -> None:
     path = cache / "songs.json"
-    known = {s["id"]: s for s in json.loads(path.read_text())} if path.exists() else {}
-    fresh = _added_since(artist_id, set(known)) if known else _all(artist_id, sys.maxsize, "AdditionDate")
-    merged = {**known, **{s["id"]: s for s in fresh}}
+    if limit is not None:
+        merged = {s["id"]: s for s in _all(artist_id, limit, "RatingScore")}
+        known: dict[int, dict] = {}
+    else:
+        known = {s["id"]: s for s in json.loads(path.read_text())} if path.exists() else {}
+        fresh = _added_since(artist_id, set(known)) if known else _all(artist_id, sys.maxsize, "AdditionDate")
+        merged = {**known, **{s["id"]: s for s in fresh}}
     cache.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(list(merged.values()), ensure_ascii=False))
     print(f"vocadb known={len(known)} now={len(merged)}", file=sys.stderr, flush=True)
-    return sorted(merged.values(), key=lambda s: (-s.get("ratingScore", 0), s["id"]))
+
+
+def load_songs(cache: Path) -> list[dict]:
+    found = json.loads((cache / "songs.json").read_text())
+    return sorted(found, key=lambda s: (-s.get("ratingScore", 0), s["id"]))
 
 
 def original_pv(song: dict, service: str) -> dict | None:

@@ -7,10 +7,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from .characters import Character
 from .image import crop_to_tile, dhash, features
 from .net import get
-from .vocadb import YOUTUBE_SIZES, songs, thumbnail_candidates
+from .vocadb import YOUTUBE_SIZES, load_songs, thumbnail_candidates
 
 SMALL = (160, 90)
 SMALL_DIR = "small"
@@ -67,12 +66,12 @@ def _download(song: dict, small_dir: Path, missing: set[int]) -> dict | None:
     }
 
 
-def build_pool(ch: Character, cache: Path, limit: int | None) -> None:
+def build_pool(cache: Path) -> None:
     small_dir = cache / SMALL_DIR
     small_dir.mkdir(parents=True, exist_ok=True)
     thumbs = cache / "thumbs.npz"
     known, missing = _load_thumbs(thumbs)
-    found = songs(ch.vocadb_artist_id, cache / "vocadb", limit)
+    found = load_songs(cache / "vocadb")
     with cf.ThreadPoolExecutor(16) as ex:
         entries = [e for e in ex.map(lambda s: _download(s, small_dir, missing), found) if e]
     seen: set[bytes] = set()

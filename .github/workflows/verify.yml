@@ -106,8 +106,51 @@ jobs:
         if: steps.head.outputs.latest == 'true'
         run: echo "slugs=$(jq -c '[.[].slug]' libs/mosaic/src/characters.json)" >> "$GITHUB_OUTPUT"
 
-  mosaic:
+  songs:
     needs: plan
+    if: needs.plan.outputs.latest == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        slug: ${{ fromJSON(needs.plan.outputs.slugs) }}
+    env:
+      SLUG: ${{ matrix.slug }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+      - id: pool
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mosaic/.cache/pool.tar
+          key: mosaic-pool-${{ matrix.slug }}-${{ github.run_id }}
+          restore-keys: |
+            mosaic-pool-${{ matrix.slug }}-
+      - if: steps.pool.outputs.cache-matched-key != ''
+        run: |
+          if tar -tf pool.tar -- "$SLUG/vocadb/songs.json" > /dev/null; then
+            tar -xf pool.tar -- "$SLUG/vocadb/songs.json"
+          fi
+          rm pool.tar
+        working-directory: tools/mosaic/.cache
+      - run: uv run mosaic songs "$SLUG"
+        working-directory: tools/mosaic
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: songs-${{ matrix.slug }}
+          path: tools/mosaic/.cache/
+          if-no-files-found: error
+          retention-days: 1
+
+  mosaic:
+    needs: [plan, songs]
     if: needs.plan.outputs.latest == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -141,6 +184,10 @@ jobs:
           fi
           rm pool.tar
         working-directory: tools/mosaic/.cache
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: songs-${{ matrix.slug }}
+          path: tools/mosaic/.cache
       - id: build-pool
         run: uv run mosaic pool "$SLUG"
         working-directory: tools/mosaic
@@ -297,7 +344,7 @@ jobs:
           skip-github-release: true
 
   ci-telemetry:
-    needs: [verify, autofix, plan, mosaic, files, deploy, web-vitals, release]
+    needs: [verify, autofix, plan, songs, mosaic, files, deploy, web-vitals, release]
     if: always()
     runs-on: ubuntu-latest
     permissions:
