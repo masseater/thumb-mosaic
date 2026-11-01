@@ -146,6 +146,7 @@ jobs:
         with:
           name: songs-${{ matrix.slug }}
           path: tools/mosaic/.cache/
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 

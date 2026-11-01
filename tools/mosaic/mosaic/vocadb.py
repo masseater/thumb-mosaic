@@ -43,6 +43,16 @@ def _added_since(artist_id: int, known: set[int]) -> Iterator[dict]:
         start += PAGE
 
 
+def _fresh(artist_id: int, known: dict[int, dict]) -> dict[int, dict]:
+    if not known:
+        return {s["id"]: s for s in _all(artist_id, sys.maxsize, "AdditionDate")}
+    try:
+        return {s["id"]: s for s in _added_since(artist_id, set(known))}
+    except RuntimeError as error:
+        print(f"vocadb 差分を取れず前回の一覧のまま使う: {error}", file=sys.stderr, flush=True)
+        return {}
+
+
 def fetch_songs(artist_id: int, cache: Path, limit: int | None) -> None:
     path = cache / "songs.json"
     if limit is not None:
@@ -50,8 +60,7 @@ def fetch_songs(artist_id: int, cache: Path, limit: int | None) -> None:
         known: dict[int, dict] = {}
     else:
         known = {s["id"]: s for s in json.loads(path.read_text())} if path.exists() else {}
-        fresh = _added_since(artist_id, set(known)) if known else _all(artist_id, sys.maxsize, "AdditionDate")
-        merged = {**known, **{s["id"]: s for s in fresh}}
+        merged = {**known, **_fresh(artist_id, known)}
     cache.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(list(merged.values()), ensure_ascii=False))
     print(f"vocadb known={len(known)} now={len(merged)}", file=sys.stderr, flush=True)
