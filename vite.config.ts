@@ -181,7 +181,7 @@ export default defineConfig({
     },
     overrides: [
       {
-        files: ["**/*.config.ts", "**/alchemy.run.ts", "**/*.worker.ts", "decision-rules.ts"],
+        files: ["**/*.config.ts", "**/alchemy.*.ts", "**/*.worker.ts", "decision-rules.ts"],
         rules: { "import/no-default-export": "off" },
       },
       {

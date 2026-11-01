@@ -1,19 +1,15 @@
 import { Workers, providers, state } from "@alchemy.run/cloudflare";
 import type { InferEnv } from "@alchemy.run/cloudflare";
-import { CHARACTERS, slugPath } from "@thumb-mosaic/mosaic";
 import { Stack } from "alchemy";
 import { Build } from "alchemy/Command";
-import { Config, Effect, Option, Schema, pipe } from "effect";
+import { Config, Effect, Option, Schema } from "effect";
 
 import { APP_NAME, CI_TELEMETRY_AUDIENCE, requireAppPrefix } from "./app-name.ts";
-import { ASSET_HEADERS } from "./asset-headers.ts";
 import { BASE_PATH } from "./base-path.ts";
+import { COMPATIBILITY, ZONE } from "./cloudflare.ts";
 import { edgeGuard } from "./edge-guard.ts";
 import { logArchive } from "./log-archive.ts";
 
-const ZONE = "masseater.dev";
-
-const COMPATIBILITY = { date: "2026-08-25" } as const;
 const CF_BEACON_TOKEN = "021b4961f3fd419297b186136a5a8a0a";
 
 const OWNED_ZONE = Option.none<string>();
@@ -37,23 +33,6 @@ const web = Effect.gen(function* web() {
     },
   });
 });
-
-const characterFiles = pipe(
-  CHARACTERS,
-  Effect.forEach(({ slug }) =>
-    Workers.Worker(`Files-${slug}`, {
-      name: `${APP_NAME}-files-${slug}`,
-      compatibility: COMPATIBILITY,
-      logpush: true,
-      routes: [{ pattern: `${ZONE}${BASE_PATH}/${slugPath(slug)}/*`, zoneName: ZONE }],
-      assets: {
-        directory: `./public/${slugPath(slug)}`,
-        base: `${BASE_PATH}/${slugPath(slug)}`,
-        headers: ASSET_HEADERS,
-      },
-    }),
-  ),
-);
 
 const ciTelemetry = Effect.gen(function* ciTelemetry() {
   const GITHUB_REPOSITORY = yield* Config.schema(Schema.String, "GITHUB_REPOSITORY").pipe(
@@ -80,7 +59,6 @@ export default Stack(
   { providers: providers(), state: state() },
   Effect.gen(function* stack() {
     const { url } = yield* web;
-    yield* characterFiles;
     yield* Option.match(OWNED_ZONE, {
       onNone: () => Effect.void,
       onSome: (zone) =>
