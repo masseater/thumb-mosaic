@@ -33,7 +33,9 @@ CANDIDATES = "candidates.json"
 MANIFEST = "manifest.json"
 OG_IMAGE = re.compile(r'property="og:image" content="([^"]+)"')
 NICO_OG = "niconico-og.json"
-NICO_PAGES = threading.Semaphore(4)
+NICO_PAGES = threading.Semaphore(1)
+PUBLISHED = "https://masseater.dev/mosaic/files"
+CODE = b"".join((Path(__file__).parent / name).read_bytes() for name in ("site.py", "image.py"))
 
 
 def _youtube(url: str) -> list[str]:
@@ -136,10 +138,32 @@ def _smalls(pool: Path) -> dict[str, Path]:
     return {e["url"]: pool / SMALL_DIR / f"{e['song']}.jpg" for e in entries}
 
 
+def _version(ch: Character, raw: bytes) -> str:
+    params = repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()
+    return hashlib.sha256(raw + params + CODE).hexdigest()[:16]
+
+
+def _reuse_published(ch: Character, data: Path, public: Path) -> bool:
+    versions = [_version(ch, variant_path(data, v).read_bytes()) for v in range(ch.variants)]
+    manifest = get(f"{PUBLISHED}/{ch.slug}/{MANIFEST}", 2, 30)
+    if manifest is None or [v["version"] for v in json.loads(manifest)["variants"]] != versions:
+        return False
+    candidates = get(f"{PUBLISHED}/{ch.slug}/{json.loads(manifest)['candidates']}", 2, 30)
+    if candidates is None:
+        return False
+    (public / ch.slug / MANIFEST).write_bytes(manifest)
+    (public / ch.slug / CANDIDATES).write_bytes(candidates)
+    print(f"site {ch.slug} 公開中の版と同じなので作り直さない", file=sys.stderr)
+    return True
+
+
 def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> None:
     cache.mkdir(parents=True, exist_ok=True)
     if (public / ch.slug).exists():
         shutil.rmtree(public / ch.slug)
+    (public / ch.slug).mkdir(parents=True)
+    if _reuse_published(ch, data, public):
+        return
     smalls = _smalls(pool)
     og_path = pool / NICO_OG
     og = json.loads(og_path.read_text()) if og_path.exists() else {}
@@ -164,7 +188,7 @@ def site(ch: Character, data: Path, cache: Path, public: Path, pool: Path) -> No
 def _variant(ch: Character, data: Path, cache: Path, public: Path, smalls: dict[str, Path], og: dict[str, str]) -> dict:
     raw = data.read_bytes()
     assignment = json.loads(raw)
-    version = hashlib.sha256(raw + repr((LEVELS, TILE, QUALITY, ATLAS_QUALITY, CHUNK, ch.og, OG_SIZE, OG_TILE)).encode()).hexdigest()[:16]
+    version = _version(ch, raw)
     tiles = assignment["tiles"]
     with cf.ThreadPoolExecutor(16) as ex:
         paths = list(ex.map(lambda t: _fetch(t[0][3], t[1], cache, smalls.get(t[0][3]), og), zip(tiles, assignment["fallbacks"])))

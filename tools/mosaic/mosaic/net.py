@@ -19,5 +19,5 @@ def get(url: str, tries: int = 6, timeout: int = 120) -> bytes | None:
             print(f"retry {attempt + 1}/{tries} {url}: {e}", file=sys.stderr, flush=True)
         except (OSError, http.client.HTTPException) as e:
             print(f"retry {attempt + 1}/{tries} {url}: {e}", file=sys.stderr, flush=True)
-        time.sleep(2**attempt)
+        time.sleep(5 * 2**attempt)
     return None

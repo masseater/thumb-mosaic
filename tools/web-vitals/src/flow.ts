@@ -46,7 +46,7 @@ const hrefsOn = (page: Page): Effect.Effect<readonly string[], BrowserError> =>
     page.$$eval("a[href]", (anchors) => {
       const hrefs: string[] = [];
       for (const anchor of anchors) {
-        if (anchor.origin === location.origin) {
+        if (anchor.origin === location.origin && anchor.checkVisibility()) {
           hrefs.push(anchor.href);
         }
       }
@@ -70,7 +70,7 @@ const clickLink = (page: Page, target: string): Effect.Effect<void, BrowserError
       page.waitForFunction(
         (href) => {
           for (const anchor of document.querySelectorAll("a")) {
-            if (`${anchor.origin}${anchor.pathname}` === href) {
+            if (`${anchor.origin}${anchor.pathname}` === href && anchor.checkVisibility()) {
               return true;
             }
           }
@@ -83,10 +83,15 @@ const clickLink = (page: Page, target: string): Effect.Effect<void, BrowserError
     const anchors = yield* attempt(() => page.$$("a[href]"));
     const reads = pipe(
       anchors,
-      Array.map((anchor) => anchor.evaluate((element) => element.href)),
+      Array.map((anchor) =>
+        anchor.evaluate((element) => ({ visible: element.checkVisibility(), href: element.href })),
+      ),
     );
-    const hrefs = yield* attempt(() => Promise.all(reads));
-    const index = yield* Array.findFirstIndex(hrefs, (href) => pageOf(href) === target).pipe(
+    const links = yield* attempt(() => Promise.all(reads));
+    const index = yield* Array.findFirstIndex(
+      links,
+      ({ visible, href }) => visible && pageOf(href) === target,
+    ).pipe(
       Effect.fromOption,
       Effect.mapError(() => missingLink(target)),
     );
