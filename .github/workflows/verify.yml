@@ -108,6 +108,7 @@ jobs:
     if: needs.plan.outputs.latest == 'true'
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       actions: write
       contents: read
     concurrency:
@@ -202,11 +203,10 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: .github/scripts/latest-commit.sh
       - if: steps.still.outputs.latest == 'true'
+        run: .github/scripts/cloudflare-token.sh
+      - if: steps.still.outputs.latest == 'true'
         run: vp exec alchemy deploy alchemy.files.ts --stage "$SLUG" --yes
         working-directory: apps/web
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - if: steps.start.outputs.latest == 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/live/$SLUG"
@@ -262,10 +262,11 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/scripts/ci-telemetry.sh
+            .github/scripts/cloudflare-token.sh
             apps/web/app-name.ts
           sparse-checkout-cone-mode: false
+      - if: github.ref == 'refs/heads/main'
+        run: .github/scripts/cloudflare-token.sh
       - run: .github/scripts/ci-telemetry.sh
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GH_TOKEN: ${{ github.token }}

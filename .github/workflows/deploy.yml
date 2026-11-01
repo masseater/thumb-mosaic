@@ -39,6 +39,7 @@ jobs:
     if: needs.plan.outputs.latest == 'true'
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       actions: read
       contents: read
     concurrency:
@@ -60,11 +61,9 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
+      - run: .github/scripts/cloudflare-token.sh
       - run: vp exec alchemy deploy --stage production --yes
         working-directory: apps/web
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   web-vitals:
     needs: deploy
@@ -110,10 +109,11 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/scripts/ci-telemetry.sh
+            .github/scripts/cloudflare-token.sh
             apps/web/app-name.ts
           sparse-checkout-cone-mode: false
+      - if: github.ref == 'refs/heads/main'
+        run: .github/scripts/cloudflare-token.sh
       - run: .github/scripts/ci-telemetry.sh
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GH_TOKEN: ${{ github.token }}
