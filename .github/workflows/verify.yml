@@ -152,7 +152,7 @@ jobs:
 
   mosaic:
     needs: [plan, songs]
-    if: needs.plan.outputs.latest == 'true'
+    if: ${{ !cancelled() && needs.plan.outputs.latest == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -211,15 +211,6 @@ jobs:
         with:
           path: tools/mosaic/.cache/pool.tar
           key: mosaic-pool-${{ matrix.slug }}-${{ hashFiles(format('tools/mosaic/.cache/{0}/vocadb/songs.json', matrix.slug), format('tools/mosaic/.cache/{0}/thumbs.npz', matrix.slug), format('tools/mosaic/.cache/{0}/niconico-og.json', matrix.slug)) }}
-      - run: |
-          mkdir -p "$RUNNER_TEMP/web/$SLUG"
-          cp "apps/web/public/files/$SLUG/manifest.json" "apps/web/public/files/$SLUG/candidates.json" "$RUNNER_TEMP/web/$SLUG/"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: web-${{ matrix.slug }}
-          path: ${{ runner.temp }}/web/
-          if-no-files-found: error
-          retention-days: 1
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mosaic-${{ matrix.slug }}
@@ -229,6 +220,7 @@ jobs:
 
   files:
     needs: [plan, mosaic]
+    if: ${{ !cancelled() && needs.plan.outputs.latest == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -238,6 +230,8 @@ jobs:
       fail-fast: false
       matrix:
         slug: ${{ fromJSON(needs.plan.outputs.slugs) }}
+    env:
+      SLUG: ${{ matrix.slug }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -254,12 +248,21 @@ jobs:
       - run: vp exec alchemy deploy alchemy.files.ts --stage "$SLUG" --yes
         working-directory: apps/web
         env:
-          SLUG: ${{ matrix.slug }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - run: |
+          mkdir -p "$RUNNER_TEMP/live/$SLUG"
+          cp "apps/web/public/files/$SLUG/manifest.json" "apps/web/public/files/$SLUG/candidates.json" "$RUNNER_TEMP/live/$SLUG/"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: live-${{ matrix.slug }}
+          path: ${{ runner.temp }}/live/
+          if-no-files-found: error
+          retention-days: 1
 
   deploy:
-    needs: files
+    needs: [plan, files]
+    if: ${{ !cancelled() && needs.plan.outputs.latest == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -276,7 +279,7 @@ jobs:
             - args: ['--frozen-lockfile']
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: web-*
+          pattern: live-*
           path: apps/web/public/files
           merge-multiple: true
       - run: |
