@@ -110,6 +110,7 @@ jobs:
     needs: plan
     if: needs.plan.outputs.latest == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     strategy:
@@ -186,6 +187,7 @@ jobs:
           rm pool.tar
         working-directory: tools/mosaic/.cache
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
         with:
           name: songs-${{ matrix.slug }}
           path: tools/mosaic/.cache
